@@ -1,6 +1,9 @@
-// import { ReactElement } from "react";
-// import { Layout } from "../components/Layout";
-// import { NextPageWithLayout } from "./_app";
+import { ReactElement } from "react";
+import { WagmiConfig } from "wagmi";
+import { Layout } from "../components/Layout";
+import { client } from "../components/web-wallet/WagmiClient";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Page = () => {
 	return (
@@ -10,8 +13,13 @@ const Page = () => {
 	);
 };
 
-// Page.getLayout = function getLayout(page: ReactElement) {
-// 	return <Layout>{page}</Layout>;
-// };
+Page.getLayout = function getLayout(page: ReactElement) {
+	return (
+		<Layout>
+			<WagmiConfig client={client}>{page}</WagmiConfig>
+			<ToastContainer position="bottom-left"></ToastContainer>
+		</Layout>
+	);
+};
 
 export default Page;
