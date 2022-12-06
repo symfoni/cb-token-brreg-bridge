@@ -5,7 +5,8 @@ import React, { useEffect, useState } from "react";
 import { Edit2 } from "react-feather";
 import { useAccount } from "wagmi";
 import { FormatAddress } from "../format/Address";
-import { useWebWalletState } from "./state";
+import { useWebWalletState } from "./web-wallet-state";
+import { WebWalletModal } from "./WebWalletModal";
 // import { WebWalletModal } from "./WebWalletModal";
 const log = debug("WebWallet:WebWalletConnectButton");
 
@@ -48,7 +49,7 @@ export const WebWalletConnectButton: React.FC<Props> = ({ ...props }) => {
 		<>
 			{isConnected ? <WalletInfo></WalletInfo> : <ConnectButton></ConnectButton>}
 			<div>
-				{/* <WebWalletModal show={walletModalVisible} close={() => setWalletModalVisible(false)}></WebWalletModal> */}
+				<WebWalletModal show={walletModalVisible} close={() => setWalletModalVisible(false)}></WebWalletModal>
 			</div>
 		</>
 	);

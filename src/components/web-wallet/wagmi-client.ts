@@ -1,27 +1,24 @@
 import { Chain, configureChains, createClient } from "wagmi";
-import { GET_PROVIDER, NORGES_BANK_CHAIN } from "./constants";
-import { WebWalletConnector } from "./WebWalletConnector";
+import { ARBITRUM_GOERLI, GET_PROVIDER, LOCAL_HARDHAT, NORGES_BANK_CHAIN } from "../constants";
+import { WebWalletConnector } from "./web-wallet-connector";
 import debug from "debug";
 
 const log = debug("WebWallet:wagmi");
 
 const { provider } = configureChains(
-	[NORGES_BANK_CHAIN],
+	[NORGES_BANK_CHAIN, ARBITRUM_GOERLI, LOCAL_HARDHAT],
 	[
 		(chain: Chain) => {
 			return {
 				chain: chain,
-				provider: () => {
-					// We need to configure this "fallback" provider manually because we need to use ethers basic auth for provider functionality which Wagmi do not expose.
-					return GET_PROVIDER({ withNetwork: true });
-				},
+				provider: () => GET_PROVIDER(chain, { withNetwork: true }),
 			};
 		},
 	],
 );
 
 const webWalletConnector = new WebWalletConnector({
-	chains: [NORGES_BANK_CHAIN],
+	chains: [NORGES_BANK_CHAIN, ARBITRUM_GOERLI, LOCAL_HARDHAT],
 	options: {},
 });
 

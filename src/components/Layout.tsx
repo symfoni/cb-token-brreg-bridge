@@ -27,7 +27,7 @@ export const Layout = ({ children }: DefaultLayoutProps) => {
 							<Spacer y={2} />
 						</Grid>
 						<Grid xs={12}>
-							<Container>{children}</Container>
+							<Container md>{children}</Container>
 						</Grid>
 					</Grid.Container>
 				</Grid.Container>

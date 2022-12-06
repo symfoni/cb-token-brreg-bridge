@@ -1,13 +1,37 @@
-import { Button, Dropdown, Grid, Navbar, Text } from "@nextui-org/react";
+import { Button, Container, Dropdown, Grid, Navbar, Text } from "@nextui-org/react";
 import Link from "next/link";
-import React from "react";
+import React, { useCallback, useEffect } from "react";
+import { useConnect, useNetwork, useSwitchNetwork } from "wagmi";
 import { WebWalletConnectButton } from "./web-wallet/WebWalletConnectButton";
+import debug from "debug";
+const log = debug("NavBar");
 
 interface Props {}
 
 export const NavBar: React.FC<Props> = ({ ...props }) => {
+	const { chain } = useNetwork();
+	const { chains, switchNetwork, data, status, variables } = useSwitchNetwork();
+	const { connectors } = useConnect();
+
+	const handleSwitchNetwork = useCallback(
+		(chainId: number) => {
+			if (!switchNetwork) {
+				throw new Error("No switchNetwork function from wagmi");
+			}
+			if (switchNetwork) {
+				console.log("switching network");
+				switchNetwork(chainId);
+			}
+		},
+		[switchNetwork],
+	);
+
+	useEffect(() => {
+		log("connectors", connectors);
+	}, [data, status, variables, connectors]);
+
 	return (
-		<Navbar variant="static" maxWidth={"lg"}>
+		<Navbar variant="static" maxWidth={"md"}>
 			<Navbar.Toggle showIn={"xs"} aria-label="toggle navigation" />
 			<Navbar.Brand>
 				<Link href="/">
@@ -16,25 +40,25 @@ export const NavBar: React.FC<Props> = ({ ...props }) => {
 			</Navbar.Brand>
 			<Navbar.Content>
 				<Navbar.Collapse>
-					<Grid.Container gap={5} justify="center">
-						<Grid>
-							<Dropdown>
-								<Dropdown.Button flat>{"TODO"}</Dropdown.Button>
-								<Dropdown.Menu
-									onAction={(key) => {
-										console.log(key);
-									}}
-								>
-									<Dropdown.Item key="account">Account</Dropdown.Item>
-									<Dropdown.Item key="sign-out">Sign out</Dropdown.Item>
-								</Dropdown.Menu>
-							</Dropdown>
-						</Grid>
-					</Grid.Container>
+					<Container>
+						<p>TODO</p>
+					</Container>
 				</Navbar.Collapse>
 			</Navbar.Content>
 			<Navbar.Content activeColor="secondary" hideIn="xs" variant="underline" style={{ textTransform: "uppercase" }}>
-				{/* Some TODO  */}
+				<Dropdown>
+					<Dropdown.Button flat>{chain ? chain.name : "Select chain"}</Dropdown.Button>
+					<Dropdown.Menu
+						onAction={(_key) => {
+							const key = typeof _key === "string" ? parseInt(_key) : _key;
+							handleSwitchNetwork(key);
+						}}
+					>
+						{chains.map((chain) => (
+							<Dropdown.Item key={chain.id}>{chain.name}</Dropdown.Item>
+						))}
+					</Dropdown.Menu>
+				</Dropdown>
 				<WebWalletConnectButton></WebWalletConnectButton>
 			</Navbar.Content>
 		</Navbar>
