@@ -19,7 +19,7 @@ const Page = () => {
 	return (
 		<Container>
 			<Row>
-				<Col>Balance</Col>
+				<Col>Balance Norges bank</Col>
 				<AccountBalance accountAddress={address} tokenAddress={cbTokenAddress}></AccountBalance>
 			</Row>
 		</Container>

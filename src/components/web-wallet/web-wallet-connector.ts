@@ -15,6 +15,7 @@ export class WebWalletConnector extends Connector<ethers.providers.JsonRpcProvid
 	provider?: ethers.providers.JsonRpcProvider;
 	wallet?: ethers.Wallet;
 
+	// rome-ignore lint/suspicious/noExplicitAny: Because this is WAGMI interface
 	constructor(config: { chains?: Chain[]; options: any }) {
 		super(config);
 		if (!config.chains) {
@@ -50,6 +51,7 @@ export class WebWalletConnector extends Connector<ethers.providers.JsonRpcProvid
 		});
 	}
 
+	// rome-ignore lint/suspicious/noExplicitAny: Because this is WAGMI interface
 	async connect(config?: { chainId?: number | undefined } | undefined): Promise<Required<ConnectorData<any>>> {
 		const chain = this.chains.find((chain) => chain.id === config?.chainId);
 		if (!chain) {
