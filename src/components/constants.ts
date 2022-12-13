@@ -22,7 +22,7 @@ export const NORGES_BANK_CHAIN: Chain = {
 };
 
 export const ARBITRUM_GOERLI: Chain = {
-	id: 42161,
+	id: 421613,
 	name: "Arbitrum Goerli",
 	network: "arbitrum",
 	rpcUrls: {
