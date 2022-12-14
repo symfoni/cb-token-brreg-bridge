@@ -4,6 +4,7 @@ import React, { useCallback, useEffect } from "react";
 import { useConnect, useNetwork, useSwitchNetwork } from "wagmi";
 import { WebWalletConnectButton } from "./web-wallet/WebWalletConnectButton";
 import debug from "debug";
+import { useAppState } from "./app-state";
 const log = debug("NavBar");
 
 interface Props {}
@@ -12,6 +13,7 @@ export const NavBar: React.FC<Props> = ({ ...props }) => {
 	const { chain } = useNetwork();
 	const { chains, switchNetwork, data, status, variables } = useSwitchNetwork();
 	const { connectors } = useConnect();
+	const { updateCurrentNetwork } = useAppState();
 
 	const handleSwitchNetwork = useCallback(
 		(chainId: number) => {
@@ -21,6 +23,7 @@ export const NavBar: React.FC<Props> = ({ ...props }) => {
 			if (switchNetwork) {
 				console.log("switching network");
 				switchNetwork(chainId);
+				updateCurrentNetwork(chainId);
 			}
 		},
 		[switchNetwork],

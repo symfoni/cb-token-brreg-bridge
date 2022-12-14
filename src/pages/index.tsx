@@ -4,10 +4,11 @@ import { Layout } from "../components/Layout";
 import { client } from "../components/web-wallet/wagmi-client";
 import { ToastContainer } from "react-toastify";
 import { Col, Container, Row, Spinner } from "@nextui-org/react";
-import { AccountBalance } from "../components/format/AccountBalance";
+import { AccountBalance } from "../components/AccountBalance";
 import { useAppState } from "../components/app-state";
 
 import "react-toastify/dist/ReactToastify.css";
+import { TransferToken } from "../components/TransferToken";
 
 const Page = () => {
 	const { cbTokenAddress } = useAppState();
@@ -21,6 +22,7 @@ const Page = () => {
 			<Row>
 				<Col>Balance Norges bank</Col>
 				<AccountBalance accountAddress={address} tokenAddress={cbTokenAddress}></AccountBalance>
+				<TransferToken></TransferToken>
 			</Row>
 		</Container>
 	);
