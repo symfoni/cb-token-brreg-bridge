@@ -51,9 +51,9 @@ export const WebWalletModal: React.FC<Props> = ({ ...props }) => {
 	// DEV - When developing, set a DEV wallet at once, without opening the modal.
 	useEffect(() => {
 		const doAsync = async () => {
-			// if (process.env.NODE_ENV === "development") {
-			// 	setSecret(process.env.NEXT_PUBLIC_DEV_PRIVATE_KEY!);
-			// }
+			if (process.env.NODE_ENV === "development") {
+				setSecret(process.env.NEXT_PUBLIC_DEV_PRIVATE_KEY!);
+			}
 			if (status === "success") {
 				await disconnect();
 			}

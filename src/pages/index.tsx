@@ -3,15 +3,15 @@ import { useAccount, useNetwork, WagmiConfig } from "wagmi";
 import { Layout } from "../components/Layout";
 import { client } from "../components/web-wallet/wagmi-client";
 import { ToastContainer } from "react-toastify";
-import { Col, Container, Row, Spinner } from "@nextui-org/react";
+import { Card, Col, Container, Row, Spinner } from "@nextui-org/react";
 import { AccountBalance } from "../components/AccountBalance";
 import { useAppState } from "../components/app-state";
-
-const log = debug("bridge:index");
-
-import "react-toastify/dist/ReactToastify.css";
 import { TransferToken } from "../components/TransferToken";
 import debug from "debug";
+import { SourceDeposits } from "../components/SourceDeposits";
+import "react-toastify/dist/ReactToastify.css";
+
+const log = debug("bridge:index");
 
 const Page = () => {
 	const { networkContractAddresses, currentNetwork, currentNetworkName } = useAppState();
@@ -31,11 +31,22 @@ const Page = () => {
 					></AccountBalance>
 				</Col>
 			</Row>
+
 			<Row>
 				<Col>
 					<TransferToken></TransferToken>
 				</Col>
 			</Row>
+			<Card>
+				<Card.Header>Deposits</Card.Header>
+				<Card.Body>
+					<SourceDeposits
+						accountAddress={address}
+						tokenAddress={networkContractAddresses[currentNetwork].CB_TOKEN_ADDRESS}
+						bridgeAddress={networkContractAddresses[currentNetwork].BRIDGE_SOURCE_ADDRESS}
+					></SourceDeposits>
+				</Card.Body>
+			</Card>
 		</Container>
 	);
 };

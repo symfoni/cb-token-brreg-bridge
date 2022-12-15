@@ -1,9 +1,6 @@
-import { Container, Text } from "@nextui-org/react";
+import { Text } from "@nextui-org/react";
 import React from "react";
 import { Address, useBalance } from "wagmi";
-import { useAppState } from "./app-state";
-import { LOCAL_HARDHAT, NORGES_BANK_CHAIN } from "./constants";
-import { useWebWalletState } from "./web-wallet/web-wallet-state";
 import { formatNOK } from "./format/Currency";
 
 interface Props {

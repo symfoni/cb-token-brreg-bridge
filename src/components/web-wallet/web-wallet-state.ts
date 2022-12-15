@@ -5,7 +5,6 @@ import { persist } from "zustand/middleware";
 
 export interface WebWalletState {
 	secret: string | undefined;
-	selectedChainId: number;
 	wallets: EncryptedWalletMeta[];
 	setSecret: (secret: string) => void;
 	saveWallet: (wallet: EncryptedWalletMeta) => void;
@@ -24,7 +23,6 @@ export const useWebWalletState = create<WebWalletState>()(
 		(set) => ({
 			secret: undefined,
 			wallets: [],
-			selectedChainId: 31337, // hardhat local
 			setSecret: (secret) => set(() => ({ secret: secret })),
 			saveWallet: (wallet: EncryptedWalletMeta) => {
 				return set((state) => {
