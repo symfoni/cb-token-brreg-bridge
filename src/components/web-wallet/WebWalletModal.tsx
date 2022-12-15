@@ -8,7 +8,8 @@ import { toastError } from "../format/toast";
 import { SelectFile } from "../utils/SelectFile";
 import { EncryptedWalletMeta, useWebWalletState } from "./web-wallet-state";
 import { WalletDetails } from "./WalletDetails";
-const log = debug("WebWallet:WebWalletConnect");
+import { useAppState } from "../app-state";
+const log = debug("bridge:WebWalletModal");
 
 interface Props {
 	show: boolean;
@@ -18,8 +19,9 @@ interface Props {
 export const WebWalletModal: React.FC<Props> = ({ ...props }) => {
 	const { close, show } = props;
 	const [encryptedWallets, setEncryptedWallets] = useState<EncryptedWalletMeta[]>([]);
-	const { setSecret, saveWallet, wallets, selectedChainId } = useWebWalletState();
-	const { connect, connectors } = useConnect();
+	const { setSecret, saveWallet, wallets } = useWebWalletState();
+	const { currentNetwork } = useAppState();
+	const { connect, connectors, status } = useConnect();
 	const { disconnect } = useDisconnect();
 	const [creatingDevWallet, setCreatingDevWallet] = useState(false);
 	const [creatingNewWallet, setCreatingNewWallet] = useState(false);
@@ -48,26 +50,36 @@ export const WebWalletModal: React.FC<Props> = ({ ...props }) => {
 
 	// DEV - When developing, set a DEV wallet at once, without opening the modal.
 	useEffect(() => {
-		if (process.env.NODE_ENV === "development") {
-			setSecret(process.env.NEXT_PUBLIC_DEV_PRIVATE_KEY!);
-			log("connectors", connectors);
+		const doAsync = async () => {
+			// if (process.env.NODE_ENV === "development") {
+			// 	setSecret(process.env.NEXT_PUBLIC_DEV_PRIVATE_KEY!);
+			// }
+			if (status === "success") {
+				await disconnect();
+			}
 			const connector = connectors.find((connector) => connector.id === "web_wallet_connector");
 			if (!connector) {
 				return toastError("Could not find a Web Wallet Connector from WAGMI");
 			}
-			connect({ connector, chainId: selectedChainId });
-		}
-	}, []);
+			connect({ connector, chainId: currentNetwork });
+		};
+		doAsync();
+		return () => {};
+	}, [currentNetwork]);
 
 	// DEV - Only available in dev enviroment to create new wallet with password 123.
 	const onCreateNew = async () => {
 		setCreatingNewWallet(true);
 		const wallet = ethers.Wallet.createRandom();
-		const encryptedWallet = await wallet.encrypt("123");
+		const password = prompt("Enter password for DEV wallet", "123");
+		if (!password) {
+			throw new Error("No password entered");
+		}
+		const encryptedWallet = await wallet.encrypt(password);
 		saveWallet({
 			address: wallet.address,
 			encryptedWallet: encryptedWallet,
-			name: "New Wallet",
+			name: "New Wallet created by user",
 		});
 		setCreatingNewWallet(false);
 	};
@@ -84,9 +96,13 @@ export const WebWalletModal: React.FC<Props> = ({ ...props }) => {
 				// const VCString =
 				// 	'{\n    "credentialSubject": {\n        "idNumber": "13835698240"\n    },\n    "issuer": {\n        "id": "did:ethr:1729:0x0200573f001338129fc62c1e1eb79505cc0830754e1ea2da7701654488dece85be"\n    },\n    "type": [\n        "VerifiableCredential",\n        "NorwegianIdNumber"\n    ],\n    "@context": [\n        "https://www.w3.org/2018/credentials/v1",\n        "https://www.symfoni.dev/credentials/v1"\n    ],\n    "issuanceDate": "2022-10-24T09:12:11.000Z",\n    "proof": {\n        "type": "JwtProof2020",\n        "jwt": "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsImh0dHBzOi8vd3d3LnN5bWZvbmkuZGV2L2NyZWRlbnRpYWxzL3YxIl0sInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJOb3J3ZWdpYW5JZE51bWJlciJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZE51bWJlciI6IjEzODM1Njk4MjQwIn19LCJuYmYiOjE2NjY2MDI3MzEsImlzcyI6ImRpZDpldGhyOjE3Mjk6MHgwMjAwNTczZjAwMTMzODEyOWZjNjJjMWUxZWI3OTUwNWNjMDgzMDc1NGUxZWEyZGE3NzAxNjU0NDg4ZGVjZTg1YmUifQ.2eA1o_9GUck6uuLULaSr8-Y1DZcaTzgUGfhw4NYDK90YnIhgTwIX8iZ6tO0rA9P-ymZ5wkRzcVEJBfb-9ZaSPg"\n    }\n}';
 				// const vc = JSON.parse(VCString);
+				const password = prompt("Enter password for DEV wallet", "123");
+				if (!password) {
+					throw new Error("No password entered");
+				}
 				wallet = {
 					address: decryptedWallet.address,
-					encryptedWallet: await decryptedWallet.encrypt("123"),
+					encryptedWallet: await decryptedWallet.encrypt(password),
 					name: "DEV wallet",
 				};
 				saveWallet(wallet);
@@ -104,7 +120,7 @@ export const WebWalletModal: React.FC<Props> = ({ ...props }) => {
 		try {
 			const connector = connectors.find((connector) => connector.id === "web_wallet_connector");
 			setSecret(decryptedWallet.privateKey);
-			connect({ connector, chainId: selectedChainId });
+			connect({ connector, chainId: currentNetwork });
 			close();
 		} catch (error) {
 			toastError(error);

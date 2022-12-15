@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import { useWebWalletState } from "./web-wallet-state";
 import { GET_PROVIDER } from "../constants";
 import debug from "debug";
-const log = debug("WebWalletConnector");
+const log = debug("bridge:WebWalletConnector");
 
 export class WebWalletConnector extends Connector<ethers.providers.JsonRpcProvider, { secret: string }, ethers.Wallet> {
 	readonly id = "web_wallet_connector";
@@ -65,16 +65,20 @@ export class WebWalletConnector extends Connector<ethers.providers.JsonRpcProvid
 		if (!this.provider) {
 			throw Error("Provider should have been defined at this point");
 		}
-		if (!this.secret) {
+		if (this.secret) {
+			this.wallet = new ethers.Wallet(this.secret).connect(this.provider);
+			if (this.ready) {
+				this.onAccountsChanged([this.wallet.address]);
+			}
+		} else {
+			// TODO - Support connecting without wallet
 			throw Error("Secret should have been defined at this point");
 		}
-		this.wallet = new ethers.Wallet(this.secret).connect(this.provider);
-		if (this.ready) {
-			this.onAccountsChanged([this.wallet.address]);
-		}
+
 		this.ready = true;
+		const account = await this.getAccount();
 		return {
-			account: await this.getAccount(),
+			account,
 			chain: {
 				id: chain.id,
 				unsupported: false,
@@ -88,10 +92,15 @@ export class WebWalletConnector extends Connector<ethers.providers.JsonRpcProvid
 		if (!chain) {
 			throw Error("Chain not found. Maybe you forgot to configure it in Wagmi client?");
 		}
-		this.provider = GET_PROVIDER(chain, { withNetwork: true });
-		if (this.wallet) {
-			this.wallet = this.wallet.connect(this.provider);
-		}
+		log("Switching chain to: ", chain);
+		this.wallet = undefined;
+		this.ready = false;
+		await this.connect({ chainId: chain.id });
+		// this.provider = GET_PROVIDER(chain, { withNetwork: true });
+		// if (this.wallet) {
+		// 	this.wallet = this.wallet.connect(this.provider);
+		// }
+		log("Done switching");
 		return chain;
 	}
 
@@ -135,7 +144,7 @@ export class WebWalletConnector extends Connector<ethers.providers.JsonRpcProvid
 	}
 
 	protected onAccountsChanged(accounts: string[]): void {
-		console.log("Accounts changed", accounts);
+		log("Accounts changed", accounts);
 	}
 	protected onChainChanged(chain: number | string): void {
 		throw new Error("Method not implemented.");

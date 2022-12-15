@@ -1,4 +1,4 @@
-import { Text } from "@nextui-org/react";
+import { Container, Text } from "@nextui-org/react";
 import React from "react";
 import { Address, useBalance } from "wagmi";
 import { useAppState } from "./app-state";
@@ -26,7 +26,7 @@ export const AccountBalance: React.FC<Props> = ({ ...props }) => {
 
 	return (
 		<Text b size={20}>
-			{data && formatNOK(data.formatted)}
+			{data && formatNOK(data.formatted, { postfix: true })}
 		</Text>
 	);
 };

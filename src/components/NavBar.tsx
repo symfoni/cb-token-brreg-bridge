@@ -1,44 +1,36 @@
 import { Button, Container, Dropdown, Grid, Navbar, Text } from "@nextui-org/react";
 import Link from "next/link";
 import React, { useCallback, useEffect } from "react";
-import { useConnect, useNetwork, useSwitchNetwork } from "wagmi";
+import { useConnect, useDisconnect, useNetwork, useSwitchNetwork } from "wagmi";
 import { WebWalletConnectButton } from "./web-wallet/WebWalletConnectButton";
 import debug from "debug";
 import { useAppState } from "./app-state";
-const log = debug("NavBar");
+const log = debug("bridge:NavBar");
 
 interface Props {}
 
 export const NavBar: React.FC<Props> = ({ ...props }) => {
 	const { chain } = useNetwork();
 	const { chains, switchNetwork, data, status, variables } = useSwitchNetwork();
-	const { connectors } = useConnect();
 	const { updateCurrentNetwork } = useAppState();
 
 	const handleSwitchNetwork = useCallback(
-		(chainId: number) => {
-			if (!switchNetwork) {
-				throw new Error("No switchNetwork function from wagmi");
-			}
-			if (switchNetwork) {
-				console.log("switching network");
-				switchNetwork(chainId);
-				updateCurrentNetwork(chainId);
-			}
+		async (chainId: number) => {
+			updateCurrentNetwork(chainId);
 		},
 		[switchNetwork],
 	);
 
-	useEffect(() => {
-		log("connectors", connectors);
-	}, [data, status, variables, connectors]);
+	// useEffect(() => {
+	// 	log("connectors", connectors);
+	// }, [connectors]);
 
 	return (
 		<Navbar variant="static" maxWidth={"md"}>
 			<Navbar.Toggle showIn={"xs"} aria-label="toggle navigation" />
 			<Navbar.Brand>
 				<Link href="/">
-					<Text h1>CB token bridge</Text>
+					<Text h1>Token bridge</Text>
 				</Link>
 			</Navbar.Brand>
 			<Navbar.Content>

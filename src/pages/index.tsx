@@ -7,22 +7,34 @@ import { Col, Container, Row, Spinner } from "@nextui-org/react";
 import { AccountBalance } from "../components/AccountBalance";
 import { useAppState } from "../components/app-state";
 
+const log = debug("bridge:index");
+
 import "react-toastify/dist/ReactToastify.css";
 import { TransferToken } from "../components/TransferToken";
+import debug from "debug";
 
 const Page = () => {
-	const { cbTokenAddress } = useAppState();
+	const { networkContractAddresses, currentNetwork, currentNetworkName } = useAppState();
 	const { chain } = useNetwork();
 	const { address, status } = useAccount();
 	useEffect(() => {
-		console.log("chain", chain);
+		log("chain", chain);
 	}, [chain]);
 	return (
 		<Container>
 			<Row>
-				<Col>Balance Norges bank</Col>
-				<AccountBalance accountAddress={address} tokenAddress={cbTokenAddress}></AccountBalance>
-				<TransferToken></TransferToken>
+				<Col>Balance {currentNetworkName}</Col>
+				<Col>
+					<AccountBalance
+						accountAddress={address}
+						tokenAddress={networkContractAddresses[currentNetwork].CB_TOKEN_ADDRESS}
+					></AccountBalance>
+				</Col>
+			</Row>
+			<Row>
+				<Col>
+					<TransferToken></TransferToken>
+				</Col>
 			</Row>
 		</Container>
 	);

@@ -9,7 +9,7 @@ import { toastError } from "../format/toast";
 import { RenameWalletModal } from "./RenameWalletModal";
 import { RequestPasswordModal } from "./RequestPasswordModal";
 import { EncryptedWalletMeta, useWebWalletState } from "./web-wallet-state";
-const log = debug("dsp:wallet:WalletDetails");
+const log = debug("bridge:WalletDetails");
 
 interface Props {
 	wallet: EncryptedWalletMeta;

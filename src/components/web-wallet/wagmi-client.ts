@@ -3,7 +3,7 @@ import { ARBITRUM_GOERLI, GET_PROVIDER, LOCAL_HARDHAT, NORGES_BANK_CHAIN } from 
 import { WebWalletConnector } from "./web-wallet-connector";
 import debug from "debug";
 
-const log = debug("WebWallet:wagmi");
+const log = debug("bridge:wagmi-client");
 
 const { provider } = configureChains(
 	[NORGES_BANK_CHAIN, ARBITRUM_GOERLI, LOCAL_HARDHAT],

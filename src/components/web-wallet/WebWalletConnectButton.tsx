@@ -8,7 +8,7 @@ import { FormatAddress } from "../format/Address";
 import { useWebWalletState } from "./web-wallet-state";
 import { WebWalletModal } from "./WebWalletModal";
 // import { WebWalletModal } from "./WebWalletModal";
-const log = debug("WebWallet:WebWalletConnectButton");
+const log = debug("bridge:WebWalletConnectButton");
 
 interface Props {}
 
@@ -18,7 +18,7 @@ export const WebWalletConnectButton: React.FC<Props> = ({ ...props }) => {
 	const { wallets } = useWebWalletState();
 
 	useEffect(() => {
-		log(wallets);
+		log("wallets", wallets);
 	}, [wallets]);
 
 	const ConnectButton = () => (

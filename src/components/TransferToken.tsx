@@ -19,7 +19,7 @@ export const TransferToken: React.FC<Props> = ({ ...props }) => {
 		abi: cbTokenABI,
 		functionName: "transfer",
 		args: [
-			networkContractAddresses[currentNetwork].CB_TOKEN_BRIDGE_ADDRESS,
+			networkContractAddresses[currentNetwork].BRIDGE_SOURCE_ADDRESS,
 			validAndPostiveBN(transferAmount) ? ethers.utils.parseUnits(transferAmount, 4) : ethers.constants.Zero,
 		],
 		overrides: isGasless ? TX_OVERRIDE : undefined, // TX override if on external network / Bergen. No override if on localhost
@@ -45,7 +45,7 @@ export const TransferToken: React.FC<Props> = ({ ...props }) => {
 	};
 
 	return (
-		<Grid.Container>
+		<Grid.Container gap={2}>
 			<Grid xs={12}>
 				<Input
 					fullWidth
