@@ -1,0 +1,18 @@
+services:
+- type: web
+  name: next-js
+  env: node
+  plan: starter
+  buildCommand: yarn; yarn build
+  startCommand: yarn start
+  autoDeploy: false
+  envVars:
+  - key: NODE_ENV
+    value: production
+
+- type: cron
+  name: bridge-bot
+  env: node
+  schedule: "*/5 * * * *"
+  buildCommand: "node dist/bot.js"
+  startCommand: date

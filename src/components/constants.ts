@@ -1,8 +1,6 @@
 import { ethers } from "ethers";
 import { Address, Chain } from "wagmi";
 
-export const CB_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_CB_TOKEN_ADDRESS! as Address;
-
 export const NORGES_BANK_CHAIN: Chain = {
 	id: 1729,
 	name: "Norwegian Central Bank Network",

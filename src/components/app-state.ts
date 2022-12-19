@@ -1,7 +1,5 @@
 import { Address } from "wagmi";
-import { TypeOf } from "zod";
 import create from "zustand";
-import { persist } from "zustand/middleware";
 import { ARBITRUM_GOERLI, LOCAL_HARDHAT, NORGES_BANK_CHAIN } from "./constants";
 
 export interface AppState {
