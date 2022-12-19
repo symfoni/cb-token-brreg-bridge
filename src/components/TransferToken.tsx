@@ -35,6 +35,7 @@ export const TransferToken: React.FC<Props> = ({ ...props }) => {
 				log("waiting");
 				await res.wait();
 				setIsWriting(false);
+
 				toast(`Transferred ${transferAmount} NOK tokens successfully!`, { type: "success" });
 			} catch (error) {
 				log(error);
@@ -65,6 +66,7 @@ export const TransferToken: React.FC<Props> = ({ ...props }) => {
 					{isWriting ? <Loading color={"currentColor"}></Loading> : "Bridge tokens"}
 				</Button>
 			</Grid>
+			<Button onClick={() => fetch("/api/hello")}>Test</Button>
 		</Grid.Container>
 	);
 };

@@ -6,7 +6,10 @@ type Data = {
 	name: string;
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-	await readSourceDeposits();
-	res.status(200).json({ name: "John Doe" });
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+	const result = await readSourceDeposits();
+	if (result) {
+		return res.status(200).json(result);
+	}
+	return res.status(200).json({ name: "John Doe" });
 }

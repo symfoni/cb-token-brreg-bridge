@@ -4,6 +4,11 @@
     "lineWidth": 120,
     "enabled": true
   },
+  "files": {
+    "ignore": [
+      "src/typechain-types/*"
+    ]
+  },
   "linter": {
     "enabled": true,
     "rules": {

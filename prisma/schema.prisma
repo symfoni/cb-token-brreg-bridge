@@ -9,3 +9,31 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum Token {
+  CB_TOKEN
+  CB_TOKEN_BRIDGED
+}
+
+model Job {
+  id                Int      @id @default(autoincrement())
+  name              String   @unique
+  latestBlockNumber Int      @default(0)
+  running           Boolean  @default(false)
+  lastRunAt         DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Transaction {
+  id               Int      @id @default(autoincrement())
+  txHash           String   @unique
+  blockNumber      Int
+  sourceChain      Int
+  destinationChain Int
+  amount           BigInt
+  token            Token
+  address          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

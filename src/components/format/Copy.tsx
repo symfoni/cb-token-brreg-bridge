@@ -52,6 +52,7 @@ export const Copy: React.FC<Props> = ({ ...props }) => {
 	}, [copyResult]);
 
 	return (
+		// rome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
 		<div
 			style={{ position: "relative", overflow: "clip", marginRight: "1rem", textOverflow: "ellipsis" }}
 			onClick={() => copy()}
