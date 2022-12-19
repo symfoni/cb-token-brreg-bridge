@@ -1,7 +1,7 @@
 import { Connector, Chain, ConnectorData, Address } from "wagmi";
 import { ethers } from "ethers";
 import { useWebWalletState } from "./web-wallet-state";
-import { GET_PROVIDER } from "../constants";
+import { GET_PROVIDER } from "../../constants";
 import debug from "debug";
 const log = debug("bridge:WebWalletConnector");
 

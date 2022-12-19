@@ -1,5 +1,6 @@
 services:
 - type: web
+  region: frankfurt
   name: next-js
   env: node
   plan: starter
@@ -12,7 +13,20 @@ services:
 
 - type: cron
   name: bridge-bot
+  region: frankfurt
+  plan: Starter
   env: node
   schedule: "*/5 * * * *"
   buildCommand: "node dist/bot.js"
   startCommand: date
+
+databases:
+  # DEV DB
+  - name: dev-db
+    region: frankfurt
+    plan: Starter
+  # PROD DB
+  - name: prod-db
+    region: frankfurt
+    plan:
+      Standard

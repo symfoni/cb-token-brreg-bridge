@@ -1,5 +1,5 @@
 import { Chain, configureChains, createClient } from "wagmi";
-import { ARBITRUM_GOERLI, GET_PROVIDER, LOCAL_HARDHAT, NORGES_BANK_CHAIN } from "../constants";
+import { ARBITRUM_GOERLI, GET_PROVIDER, LOCAL_HARDHAT, NORGES_BANK_CHAIN } from "../../constants";
 import { WebWalletConnector } from "./web-wallet-connector";
 import debug from "debug";
 
