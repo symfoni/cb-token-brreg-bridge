@@ -1,7 +1,7 @@
 services:
 - type: web
   region: frankfurt
-  name: next-js
+  name: bridge-server-dev
   env: node
   plan: starter
   buildCommand: yarn; yarn build
@@ -12,7 +12,7 @@ services:
     value: production
 
 - type: cron
-  name: bridge-bot
+  name: bridge-bot-dev
   region: frankfurt
   plan: Starter
   env: node
@@ -21,12 +21,10 @@ services:
   startCommand: date
 
 databases:
-  # DEV DB
-  - name: dev-db
+  - name: bridge-db-dev
     region: frankfurt
     plan: Starter
-  # PROD DB
-  - name: prod-db
+  - name: bridge-db-local
     region: frankfurt
     plan:
       Standard
