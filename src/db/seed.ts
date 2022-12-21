@@ -3,10 +3,18 @@ import prisma from "../server/prisma";
 async function main() {
 	console.log("Emptying database");
 	await prisma.job.deleteMany();
-	const blockchainJob = await prisma.job.create({
-		data: {
-			name: "read_source_deposits",
-		},
+	await prisma.transaction.deleteMany();
+	console.log("Emptying finished");
+	console.log("Seeding database");
+	const blockchainJob = await prisma.job.createMany({
+		data: [
+			{
+				name: "read_source_deposits",
+			},
+			{
+				name: "mint_from_deposits",
+			},
+		],
 	});
 
 	console.log("Seeding finished.");

@@ -15,6 +15,13 @@ enum Token {
   CB_TOKEN_BRIDGED
 }
 
+enum Status {
+  DEPOSIT_RECEIVED
+  MINT_INITIATED
+  MINT_SUCCESS
+  ERROR
+}
+
 model Job {
   id                Int      @id @default(autoincrement())
   name              String   @unique
@@ -27,7 +34,8 @@ model Job {
 
 model Transaction {
   id               Int      @id @default(autoincrement())
-  txHash           String   @unique
+  txHashDeposit    String   @unique
+  txHashMint       String?  @unique
   blockNumber      Int
   sourceChain      Int
   destinationChain Int
@@ -36,4 +44,5 @@ model Transaction {
   address          String
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  status           Status
 }

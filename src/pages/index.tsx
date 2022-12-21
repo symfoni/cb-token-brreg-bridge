@@ -33,6 +33,16 @@ const Page = () => {
 			</Row>
 
 			<Row>
+				<Col>Balance bridged {currentNetworkName}</Col>
+				<Col>
+					<AccountBalance
+						accountAddress={address}
+						tokenAddress={networkContractAddresses[currentNetwork].CB_TOKEN_BRIDGE_ADDRESS}
+					></AccountBalance>
+				</Col>
+			</Row>
+
+			<Row>
 				<Col>
 					<TransferToken></TransferToken>
 				</Col>
