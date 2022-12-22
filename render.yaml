@@ -4,7 +4,7 @@ services:
   name: bridge-server-dev
   env: node
   plan: starter
-  buildCommand: yarn; yarn generate; yarn build; 
+  buildCommand: yarn; yarn generate; yarn build; yarn seed; 
   startCommand: yarn start
   autoDeploy: true
   envVars:
@@ -19,6 +19,7 @@ services:
   schedule: "*/5 * * * *"
   buildCommand: yarn; yarn build
   startCommand: yarn bot
+
 
 databases:
   - name: bridge-db-dev
