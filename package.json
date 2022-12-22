@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "yarn rome check src",
     "seed": "tsx ./src/db/seed.ts",
+    "bot": "tsx ./src/server/bot.ts",
     "migrate": "prisma migrate dev && yarn seed",
     "studio": "prisma studio",
     "reset": "prisma migrate reset && yarn migrate && yarn seed",

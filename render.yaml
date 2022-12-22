@@ -17,8 +17,8 @@ services:
   plan: Starter
   env: node
   schedule: "*/5 * * * *"
-  buildCommand: "node dist/bot.js"
-  startCommand: date
+  buildCommand: yarn; yarn build
+  startCommand: yarn bot
 
 databases:
   - name: bridge-db-dev

@@ -170,20 +170,20 @@ export const WebWalletModal: React.FC<Props> = ({ ...props }) => {
 					<Grid xs={6}>
 						<SelectFile onReceiveFile={onReceiveKeystore}>Select keystore file</SelectFile>
 					</Grid>
-					{process.env.NODE_ENV === "development" && (
-						<>
-							<Grid xs={6}>
-								<Button onPress={() => setDevWallet()}>
-									{creatingDevWallet ? <Loading color={"currentColor"}></Loading> : "DEV Wallet"}
-								</Button>
-							</Grid>
-							<Grid xs={6}>
-								<Button onClick={onCreateNew}>
-									{creatingNewWallet ? <Loading color={"currentColor"}></Loading> : "Create new"}
-								</Button>
-							</Grid>
-						</>
-					)}
+					{/* 	{process.env.NODE_ENV === "development" && ( */}
+					<>
+						<Grid xs={6}>
+							<Button onPress={() => setDevWallet()}>
+								{creatingDevWallet ? <Loading color={"currentColor"}></Loading> : "DEV Wallet"}
+							</Button>
+						</Grid>
+						<Grid xs={6}>
+							<Button onClick={onCreateNew}>
+								{creatingNewWallet ? <Loading color={"currentColor"}></Loading> : "Create new"}
+							</Button>
+						</Grid>
+					</>
+					{/* 		)} */}
 				</Grid.Container>
 			</Modal.Footer>
 		</Modal>
