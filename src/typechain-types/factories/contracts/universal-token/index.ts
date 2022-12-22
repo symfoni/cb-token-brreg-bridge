@@ -2,7 +2,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as extensions from "./extensions";
-export * as interface from "./interface";
 export * as roles from "./roles";
 export * as tools from "./tools";
 export { IERC1400__factory } from "./IERC1400__factory";

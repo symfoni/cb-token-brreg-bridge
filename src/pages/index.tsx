@@ -111,14 +111,15 @@ const Page = () => {
 };
 
 Page.getLayout = function getLayout(page: ReactElement) {
-	return (
-		<WagmiConfig client={client}>
+	if (client) {
+		return (
 			<Layout>
 				{page}
 				<ToastContainer position="bottom-left"></ToastContainer>
 			</Layout>
-		</WagmiConfig>
-	);
+		);
+	}
+	return <Spinner />;
 };
 
 export default Page;

@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "rome check src && next build",
+    "build": "yarn rome check src && next build",
     "start": "next start",
-    "lint": "rome check src",
+    "lint": "yarn rome check src",
     "seed": "tsx ./src/db/seed.ts",
     "migrate": "prisma migrate dev && yarn seed",
     "studio": "prisma studio",

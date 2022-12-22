@@ -23,7 +23,7 @@ const webWalletConnector = new WebWalletConnector({
 });
 
 export const client = createClient({
-	autoConnect: true,
+	autoConnect: false,
 	connectors: [webWalletConnector],
 	provider,
 	logger: {

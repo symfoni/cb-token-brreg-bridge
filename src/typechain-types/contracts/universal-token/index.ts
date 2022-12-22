@@ -3,8 +3,7 @@
 /* eslint-disable */
 import type * as extensions from "./extensions";
 export type { extensions };
-import type * as interface from "./interface";
-export type { interface };
+
 import type * as roles from "./roles";
 export type { roles };
 import type * as tools from "./tools";
