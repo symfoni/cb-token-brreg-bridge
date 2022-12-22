@@ -12,8 +12,8 @@ import { Bridge__factory, CBToken__factory } from "../typechain-types";
 import prisma from "./prisma";
 import { Prisma, Status } from "@prisma/client";
 
-const SOURCE_CHAIN = LOCAL_HARDHAT;
-const DESTINATION_CHAIN = NORGES_BANK_CHAIN;
+const SOURCE_CHAIN = process.env.NODE_ENV === "development" ? LOCAL_HARDHAT : NORGES_BANK_CHAIN;
+const DESTINATION_CHAIN = process.env.NODE_ENV === "development" ? NORGES_BANK_CHAIN : ARBITRUM_GOERLI;
 const MIN_BLOCK_NUMBER = {
 	[LOCAL_HARDHAT.id]: 0,
 	[NORGES_BANK_CHAIN.id]: 3755065,
@@ -225,7 +225,7 @@ export async function readWithdrawels() {
 
 export async function mintBridgedTokensFromDeposits() {
 	try {
-		console.log("===== START Mint from deposits...");
+		console.log("===== START mintBridgedTokensFromDeposits...");
 
 		const walletDestionation = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
 			GET_PROVIDER(DESTINATION_CHAIN, { withNetwork: true }),
@@ -301,7 +301,7 @@ export async function mintBridgedTokensFromDeposits() {
 			},
 		});
 
-		console.log("===== END Mint from deposits...");
+		console.log("===== END mintBridgedTokensFromDeposits...");
 		return receipts;
 	} catch (error) {
 		prisma.job.update({
@@ -317,7 +317,7 @@ export async function mintBridgedTokensFromDeposits() {
 }
 
 export async function readDeposits() {
-	console.log("===== START Reading source deposits...");
+	console.log("===== START readDeposits...");
 	try {
 		const walletSource = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
 			GET_PROVIDER(SOURCE_CHAIN, { withNetwork: true }),
@@ -379,7 +379,7 @@ export async function readDeposits() {
 				data: transactions,
 			}),
 		]);
-		console.log("===== END Reading source deposits...");
+		console.log("===== END readDeposits...");
 		return { updatedJob, updatedTransactions };
 	} catch (error) {
 		prisma.job.update({
