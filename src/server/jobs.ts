@@ -88,7 +88,9 @@ export async function burnBridgedTokensFromWithdrawels() {
 					},
 				});
 				receipts = [...receipts, receiptWithdrawel];
-				const balanceForBridgeAfter = await sourceToken.balanceOf(walletSource.address);
+				const balanceForBridgeAfter = await sourceToken.balanceOf(
+					CONTRACT_ADDRESSES[SOURCE_CHAIN.id].BRIDGE_SOURCE_ADDRESS,
+				);
 				const balanceForUserAfter = await sourceToken.balanceOf(transaction.address);
 				console.log("balanceForBridgeAfter", ethers.utils.formatUnits(balanceForBridgeAfter, 4));
 				console.log("balanceForUserAfter", ethers.utils.formatUnits(balanceForUserAfter, 4));

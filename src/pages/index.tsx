@@ -11,6 +11,7 @@ import debug from "debug";
 import { TransferEventList } from "../components/TransferEventList";
 import "react-toastify/dist/ReactToastify.css";
 import { WithdrawTokens } from "../components/WithdrawTokens";
+import { ethers } from "ethers";
 
 const log = debug("bridge:index");
 
@@ -72,9 +73,6 @@ const Page = () => {
 						</Card.Body>
 					</Card>
 				</Card.Body>
-				<Card.Footer>
-					<Button onClick={() => fetch("/api/hello")}>Test</Button>
-				</Card.Footer>
 			</Card>
 
 			<Spacer></Spacer>
@@ -95,13 +93,17 @@ const Page = () => {
 							<TransferEventList
 								accountAddress={address}
 								tokenAddress={networkContractAddresses[currentNetwork].CB_TOKEN_BRIDGE_ADDRESS}
-								bridgeAddress={networkContractAddresses[currentNetwork].BRIDGE_DESTINATION_ADDRESS}
+								bridgeAddress={ethers.constants.AddressZero}
 							></TransferEventList>
 						</Card.Body>
 					</Card>
 				</Card.Body>
+			</Card>
+			<Spacer></Spacer>
+			<Card>
+				<Card.Header>Admin debug</Card.Header>
 				<Card.Footer>
-					<Button onClick={() => fetch("/api/hello")}>Test</Button>
+					<Button onClick={() => fetch("/api/hello")}>Run backend manually</Button>
 				</Card.Footer>
 			</Card>
 		</Container>
