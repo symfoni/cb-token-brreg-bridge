@@ -16,7 +16,7 @@ services:
   region: frankfurt
   plan: Starter
   env: node
-  schedule: "*/5 * * * *"
+  schedule: "1 * * * *"
   buildCommand: yarn; yarn build
   startCommand: yarn bot
 
