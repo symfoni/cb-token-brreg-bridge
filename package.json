@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "yarn rome check src && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "yarn rome check src",
     "seed": "tsx ./src/db/seed.ts",
@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@types/debug": "^4.1.7",
-    "rome": "^11.0.0",
-    "tsx": "^3.12.1"
+    "tsx": "^3.12.1",
+    "rome": "^11.0.0"
   }
 }
