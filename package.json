@@ -10,7 +10,7 @@
     "seed": "tsx ./src/db/seed.ts",
     "migrate": "prisma migrate dev && yarn seed",
     "studio": "prisma studio",
-    "reset": "prisma migrate reset && yarb migrate && yarn seed",
+    "reset": "prisma migrate reset && yarn migrate && yarn seed",
     "docker:postgres": "docker run --name payvc-demo-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres"
   },
   "dependencies": {

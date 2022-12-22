@@ -14,6 +14,12 @@ async function main() {
 			{
 				name: "mint_from_deposits",
 			},
+			{
+				name: "read_destination_withdrawals",
+			},
+			{
+				name: "burn_from_withdrawels",
+			},
 		],
 	});
 

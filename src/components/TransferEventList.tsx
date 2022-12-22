@@ -13,7 +13,7 @@ interface Props {
 	accountAddress?: Address;
 }
 
-export const SourceDeposits: React.FC<Props> = ({ ...props }) => {
+export const TransferEventList: React.FC<Props> = ({ ...props }) => {
 	const [perAccount, setPerAccount] = useState(false);
 	const [deposits, setDeposits] = useState<
 		{ amount: ethers.BigNumber; blockNumber: number; transactionHash: string }[]

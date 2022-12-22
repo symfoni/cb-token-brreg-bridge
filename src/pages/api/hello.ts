@@ -1,16 +1,21 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import { readSourceDeposits, mintBridgedTokensFromDeposits } from "../../server/jobs";
+import {
+	readDeposits,
+	mintBridgedTokensFromDeposits,
+	readWithdrawels,
+	burnBridgedTokensFromWithdrawels,
+} from "../../server/jobs";
 
 type Data = {
 	name: string;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-	const result = await readSourceDeposits();
-	const result2 = await mintBridgedTokensFromDeposits();
-	if (result) {
-		return res.status(200).json(result);
-	}
+	await readDeposits();
+	await mintBridgedTokensFromDeposits();
+	await readWithdrawels();
+	await burnBridgedTokensFromWithdrawels();
+
 	return res.status(200).json({ name: "John Doe" });
 }

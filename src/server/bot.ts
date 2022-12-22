@@ -1,9 +1,9 @@
-import { readSourceDeposits } from "./jobs";
+import { readDeposits } from "./jobs";
 
 export default async function handler() {
 	try {
 		console.log("===== START Bot...");
-		const sourceDeposits = readSourceDeposits();
+		const sourceDeposits = readDeposits();
 
 		const allPromises = await Promise.all([sourceDeposits]);
 		console.log("===== END Bot...");

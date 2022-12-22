@@ -10,16 +10,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Token {
-  CB_TOKEN
-  CB_TOKEN_BRIDGED
-}
-
 enum Status {
   DEPOSIT_RECEIVED
-  MINT_INITIATED
-  MINT_SUCCESS
+  DEPOSIT_INITIATED
+  DEPOSIT_SUCCESS
   ERROR
+  WITHDRAWEL_RECEIEVED
+  BURN_INTIATED
+  BURN_SUCCESS
+  WITHDRAWEL_INITIATED
+  WITHDRAWEL_SUCCESS
 }
 
 model Job {
@@ -34,13 +34,14 @@ model Job {
 
 model Transaction {
   id               Int      @id @default(autoincrement())
-  txHashDeposit    String   @unique
+  txHashDeposit    String?  @unique
   txHashMint       String?  @unique
+  txHashBurn       String?  @unique
+  txHashWithdrawel String?  @unique
   blockNumber      Int
   sourceChain      Int
   destinationChain Int
   amount           BigInt
-  token            Token
   address          String
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
