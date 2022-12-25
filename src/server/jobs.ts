@@ -62,7 +62,7 @@ export async function burnBridgedTokensFromWithdrawels() {
 				const withdrawelTx = await sourceBridge.transfer(
 					transaction.address,
 					ethers.BigNumber.from(transaction.amount),
-					// IS_GASSLESS(SOURCE_CHAIN) ? TX_OVERRIDE : undefined,
+					IS_GASSLESS(SOURCE_CHAIN) ? TX_OVERRIDE : undefined,
 				);
 
 				await prisma.transaction.update({
@@ -162,7 +162,7 @@ export async function readWithdrawels() {
 
 			const hasTransaction = await prisma.transaction.findFirst({
 				where: {
-					txHashDeposit: event.transactionHash,
+					txHashBurn: event.transactionHash,
 				},
 			});
 			if (hasTransaction) {
@@ -250,11 +250,11 @@ export async function mintBridgedTokensFromDeposits() {
 					walletDestionation,
 				);
 
-				const mintTx = await destinationBridge.deposit(
-					transaction.address,
-					ethers.BigNumber.from(transaction.amount),
-					IS_GASSLESS(DESTINATION_CHAIN) ? TX_OVERRIDE : undefined,
-				);
+				if (IS_GASSLESS(DESTINATION_CHAIN)) {
+				}
+				const mintTx = IS_GASSLESS(DESTINATION_CHAIN)
+					? await destinationBridge.deposit(transaction.address, ethers.BigNumber.from(transaction.amount), TX_OVERRIDE)
+					: await destinationBridge.deposit(transaction.address, ethers.BigNumber.from(transaction.amount));
 				await prisma.transaction.update({
 					where: {
 						id: transaction.id,
