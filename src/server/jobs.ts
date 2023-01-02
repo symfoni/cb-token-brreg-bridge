@@ -11,30 +11,36 @@ import {
 import { Bridge__factory, CBToken__factory } from "../typechain-types";
 import prisma from "./prisma";
 import { Prisma, Status } from "@prisma/client";
+import { Chain } from "wagmi";
 
-const SOURCE_CHAIN = process.env.NODE_ENV === "development" ? LOCAL_HARDHAT : NORGES_BANK_CHAIN;
-const DESTINATION_CHAIN = process.env.NODE_ENV === "development" ? NORGES_BANK_CHAIN : ARBITRUM_GOERLI;
-const MIN_BLOCK_NUMBER = {
-	[LOCAL_HARDHAT.id]: 0,
-	[NORGES_BANK_CHAIN.id]: 3755065,
-	[ARBITRUM_GOERLI.id]: 3336808,
-};
+// const sourceChain = process.env.NODE_ENV === "development" ? LOCAL_HARDHAT : NORGES_BANK_CHAIN;
+// const destinationChain = process.env.NODE_ENV === "development" ? NORGES_BANK_CHAIN : ARBITRUM_GOERLI;
+// const minBlockNumber = {
+// 	[LOCAL_HARDHAT.id]: 0,
+// 	[NORGES_BANK_CHAIN.id]: 3755065,
+// 	[ARBITRUM_GOERLI.id]: 3336808,
+// };
 
-export async function burnBridgedTokensFromWithdrawels() {
+export async function burnBridgedTokensFromWithdrawels(params: {
+	sourceChain: Chain;
+	destinationChain: Chain;
+	minBlockNumber: Record<number, number>;
+}) {
+	const { sourceChain, destinationChain, minBlockNumber } = params;
 	try {
 		console.log("===== START burnBridgedTokensFromWithdrawels...");
 
 		const walletDestination = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
-			GET_PROVIDER(DESTINATION_CHAIN, { withNetwork: true }),
+			GET_PROVIDER(destinationChain, { withNetwork: true }),
 		);
 		const walletSource = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
-			GET_PROVIDER(SOURCE_CHAIN, { withNetwork: true }),
+			GET_PROVIDER(sourceChain, { withNetwork: true }),
 		);
 		const sourceBridge = Bridge__factory.connect(
-			CONTRACT_ADDRESSES[SOURCE_CHAIN.id].BRIDGE_SOURCE_ADDRESS,
+			CONTRACT_ADDRESSES[sourceChain.id].BRIDGE_SOURCE_ADDRESS,
 			walletSource,
 		);
-		const sourceToken = CBToken__factory.connect(CONTRACT_ADDRESSES[SOURCE_CHAIN.id].CB_TOKEN_ADDRESS, walletSource);
+		const sourceToken = CBToken__factory.connect(CONTRACT_ADDRESSES[sourceChain.id].CB_TOKEN_ADDRESS, walletSource);
 
 		const job = await getJob("burn_from_withdrawels");
 
@@ -48,7 +54,7 @@ export async function burnBridgedTokensFromWithdrawels() {
 		for (const transaction of transactionsReadyForMinting) {
 			try {
 				const balanceForBridgeBefore = await sourceToken.balanceOf(
-					CONTRACT_ADDRESSES[SOURCE_CHAIN.id].BRIDGE_SOURCE_ADDRESS,
+					CONTRACT_ADDRESSES[sourceChain.id].BRIDGE_SOURCE_ADDRESS,
 				);
 				const balanceForUserBefore = await sourceToken.balanceOf(transaction.address);
 				console.log("balanceForBridgeBefore", ethers.utils.formatUnits(balanceForBridgeBefore, 4));
@@ -56,14 +62,12 @@ export async function burnBridgedTokensFromWithdrawels() {
 
 				console.log(
 					`Transfering ${transaction.amount.toString()} tokens from Bridge to ${transaction.address} on chain: ${
-						SOURCE_CHAIN.name
+						sourceChain.name
 					}`,
 				);
-				const withdrawelTx = await sourceBridge.transfer(
-					transaction.address,
-					ethers.BigNumber.from(transaction.amount),
-					IS_GASSLESS(SOURCE_CHAIN) ? TX_OVERRIDE : undefined,
-				);
+				const withdrawelTx = IS_GASSLESS(sourceChain)
+					? await sourceBridge.transfer(transaction.address, ethers.BigNumber.from(transaction.amount), TX_OVERRIDE)
+					: await sourceBridge.transfer(transaction.address, ethers.BigNumber.from(transaction.amount));
 
 				await prisma.transaction.update({
 					where: {
@@ -76,7 +80,7 @@ export async function burnBridgedTokensFromWithdrawels() {
 				const receiptWithdrawel = await withdrawelTx.wait();
 				console.log(
 					`Transfered ${transaction.amount.toString()} tokens from Bridge to ${transaction.address} on ${
-						SOURCE_CHAIN.name
+						sourceChain.name
 					}`,
 				);
 				await prisma.transaction.update({
@@ -89,7 +93,7 @@ export async function burnBridgedTokensFromWithdrawels() {
 				});
 				receipts = [...receipts, receiptWithdrawel];
 				const balanceForBridgeAfter = await sourceToken.balanceOf(
-					CONTRACT_ADDRESSES[SOURCE_CHAIN.id].BRIDGE_SOURCE_ADDRESS,
+					CONTRACT_ADDRESSES[sourceChain.id].BRIDGE_SOURCE_ADDRESS,
 				);
 				const balanceForUserAfter = await sourceToken.balanceOf(transaction.address);
 				console.log("balanceForBridgeAfter", ethers.utils.formatUnits(balanceForBridgeAfter, 4));
@@ -133,26 +137,31 @@ export async function burnBridgedTokensFromWithdrawels() {
 	}
 }
 
-export async function readWithdrawels() {
+export async function readWithdrawels(params: {
+	sourceChain: Chain;
+	destinationChain: Chain;
+	minBlockNumber: Record<number, number>;
+}) {
+	const { sourceChain, destinationChain, minBlockNumber } = params;
 	console.log("===== START readWithdrawels ...");
 	try {
 		// const walletSource = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
-		// 	GET_PROVIDER(SOURCE_CHAIN, { withNetwork: true }),
+		// 	GET_PROVIDER(sourceChain, { withNetwork: true }),
 		// );
 		const walletDestination = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
-			GET_PROVIDER(DESTINATION_CHAIN, { withNetwork: true }),
+			GET_PROVIDER(destinationChain, { withNetwork: true }),
 		);
 		const job = await getJob("read_destination_withdrawals");
-		// const bridge = Bridge__factory.connect(CONTRACT_ADDRESSES[SOURCE_CHAIN.id].BRIDGE_SOURCE_ADDRESS, wallet);
+		// const bridge = Bridge__factory.connect(CONTRACT_ADDRESSES[sourceChain.id].BRIDGE_SOURCE_ADDRESS, wallet);
 		const destinationToken = CBToken__factory.connect(
-			CONTRACT_ADDRESSES[DESTINATION_CHAIN.id].CB_TOKEN_BRIDGE_ADDRESS,
+			CONTRACT_ADDRESSES[destinationChain.id].CB_TOKEN_BRIDGE_ADDRESS,
 			walletDestination,
 		);
 
 		// Transfers to Zero Address are considered withdrawels
 		const events = await destinationToken.queryFilter(
 			destinationToken.filters.Transfer(null, ethers.constants.AddressZero, null),
-			Math.max(MIN_BLOCK_NUMBER[DESTINATION_CHAIN.id], job.latestBlockNumber),
+			Math.max(minBlockNumber[destinationChain.id], job.latestBlockNumber),
 			"latest",
 		);
 		let transactions: Prisma.TransactionCreateInput[] = [];
@@ -179,8 +188,8 @@ export async function readWithdrawels() {
 				amount: value.toBigInt(),
 				address: from,
 				blockNumber: event.blockNumber,
-				destinationChain: DESTINATION_CHAIN.id,
-				sourceChain: SOURCE_CHAIN.id,
+				destinationChain: destinationChain.id,
+				sourceChain: sourceChain.id,
 				txHashBurn: event.transactionHash,
 				status: Status.WITHDRAWEL_RECEIEVED as Status,
 			};
@@ -189,7 +198,7 @@ export async function readWithdrawels() {
 		}
 		console.log(
 			`Read ${transactions.length} transactions from block ${Math.max(
-				MIN_BLOCK_NUMBER[DESTINATION_CHAIN.id],
+				minBlockNumber[destinationChain.id],
 				job.latestBlockNumber,
 			)} to ${latest_block}`,
 		);
@@ -223,12 +232,17 @@ export async function readWithdrawels() {
 	}
 }
 
-export async function mintBridgedTokensFromDeposits() {
+export async function mintBridgedTokensFromDeposits(params: {
+	sourceChain: Chain;
+	destinationChain: Chain;
+	minBlockNumber: Record<number, number>;
+}) {
+	const { sourceChain, destinationChain, minBlockNumber } = params;
 	try {
 		console.log("===== START mintBridgedTokensFromDeposits...");
 
 		const walletDestionation = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
-			GET_PROVIDER(DESTINATION_CHAIN, { withNetwork: true }),
+			GET_PROVIDER(destinationChain, { withNetwork: true }),
 		);
 
 		const job = await getJob("mint_from_deposits");
@@ -242,17 +256,17 @@ export async function mintBridgedTokensFromDeposits() {
 		for (const transaction of transactionsReadyForMinting) {
 			try {
 				const destinationToken = CBToken__factory.connect(
-					CONTRACT_ADDRESSES[DESTINATION_CHAIN.id].CB_TOKEN_BRIDGE_ADDRESS,
+					CONTRACT_ADDRESSES[destinationChain.id].CB_TOKEN_BRIDGE_ADDRESS,
 					walletDestionation,
 				);
 				const destinationBridge = Bridge__factory.connect(
-					CONTRACT_ADDRESSES[DESTINATION_CHAIN.id].BRIDGE_DESTINATION_ADDRESS,
+					CONTRACT_ADDRESSES[destinationChain.id].BRIDGE_DESTINATION_ADDRESS,
 					walletDestionation,
 				);
 
-				if (IS_GASSLESS(DESTINATION_CHAIN)) {
+				if (IS_GASSLESS(destinationChain)) {
 				}
-				const mintTx = IS_GASSLESS(DESTINATION_CHAIN)
+				const mintTx = IS_GASSLESS(destinationChain)
 					? await destinationBridge.deposit(transaction.address, ethers.BigNumber.from(transaction.amount), TX_OVERRIDE)
 					: await destinationBridge.deposit(transaction.address, ethers.BigNumber.from(transaction.amount));
 				await prisma.transaction.update({
@@ -316,19 +330,24 @@ export async function mintBridgedTokensFromDeposits() {
 	}
 }
 
-export async function readDeposits() {
+export async function readDeposits(params: {
+	sourceChain: Chain;
+	destinationChain: Chain;
+	minBlockNumber: Record<number, number>;
+}) {
+	const { sourceChain, destinationChain, minBlockNumber } = params;
 	console.log("===== START readDeposits...");
 	try {
 		const walletSource = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
-			GET_PROVIDER(SOURCE_CHAIN, { withNetwork: true }),
+			GET_PROVIDER(sourceChain, { withNetwork: true }),
 		);
 		const job = await getJob("read_source_deposits");
-		// const bridge = Bridge__factory.connect(CONTRACT_ADDRESSES[SOURCE_CHAIN.id].BRIDGE_SOURCE_ADDRESS, wallet);
-		const sourceToken = CBToken__factory.connect(CONTRACT_ADDRESSES[SOURCE_CHAIN.id].CB_TOKEN_ADDRESS, walletSource);
+		// const bridge = Bridge__factory.connect(CONTRACT_ADDRESSES[sourceChain.id].BRIDGE_SOURCE_ADDRESS, wallet);
+		const sourceToken = CBToken__factory.connect(CONTRACT_ADDRESSES[sourceChain.id].CB_TOKEN_ADDRESS, walletSource);
 
 		const events = await sourceToken.queryFilter(
-			sourceToken.filters.Transfer(null, CONTRACT_ADDRESSES[SOURCE_CHAIN.id].BRIDGE_SOURCE_ADDRESS, null),
-			Math.max(MIN_BLOCK_NUMBER[SOURCE_CHAIN.id], job.latestBlockNumber),
+			sourceToken.filters.Transfer(null, CONTRACT_ADDRESSES[sourceChain.id].BRIDGE_SOURCE_ADDRESS, null),
+			Math.max(minBlockNumber[sourceChain.id], job.latestBlockNumber),
 			"latest",
 		);
 		let transactions: Prisma.TransactionCreateInput[] = [];
@@ -355,8 +374,8 @@ export async function readDeposits() {
 				amount: value.toBigInt(),
 				address: from,
 				blockNumber: event.blockNumber,
-				destinationChain: DESTINATION_CHAIN.id,
-				sourceChain: SOURCE_CHAIN.id,
+				destinationChain: destinationChain.id,
+				sourceChain: sourceChain.id,
 				txHashDeposit: event.transactionHash,
 				status: Status.DEPOSIT_RECEIVED as Status,
 			};
