@@ -50,7 +50,7 @@ export const LOCAL_HARDHAT: Chain = {
 	testnet: false,
 };
 
-export const CHAINS: Record<number, Chain> = [NORGES_BANK_CHAIN, ARBITRUM_GOERLI, LOCAL_HARDHAT];
+export const CHAINS: Chain[] = [NORGES_BANK_CHAIN, ARBITRUM_GOERLI, LOCAL_HARDHAT];
 
 export const CONTRACT_ADDRESSES: Record<CurrentNetwork, ContractAddresses> = {
 	[LOCAL_HARDHAT.id]: {
@@ -134,8 +134,17 @@ export const BRIDGE_CHAIN_CONFIG = () => {
 			? parseInt(process.env.DESTINATION_CHAIN)
 			: false;
 
-	const SOURCE_CHAIN = sourceChainConfig ? CHAINS[sourceChainConfig] : LOCAL_HARDHAT;
-	const DESTINATION_CHAIN = destinationChainConfig ? CHAINS[destinationChainConfig] : NORGES_BANK_CHAIN;
+	console.log(CHAINS);
+	const SOURCE_CHAIN = sourceChainConfig ? CHAINS.find((chain) => chain.id === sourceChainConfig) : LOCAL_HARDHAT;
+	const DESTINATION_CHAIN = destinationChainConfig
+		? CHAINS.find((chain) => chain.id === destinationChainConfig)
+		: NORGES_BANK_CHAIN;
+	if (!SOURCE_CHAIN) {
+		throw new Error("Invalid source chain");
+	}
+	if (!DESTINATION_CHAIN) {
+		throw new Error("Invalid destination chain");
+	}
 	const MIN_BLOCK_NUMBER = {
 		[LOCAL_HARDHAT.id]:
 			process.env.FROM_BLOCK_LOCAL_BLOCKCHAIN && !Number.isNaN(process.env.FROM_BLOCK_LOCAL_BLOCKCHAIN)
@@ -150,6 +159,12 @@ export const BRIDGE_CHAIN_CONFIG = () => {
 				? parseInt(process.env.FROM_BLOCK_ARBITRUM_GOERLI)
 				: 3336808,
 	};
+	console.log("chain config");
+	console.log({
+		sourceChain: SOURCE_CHAIN,
+		destinationChain: DESTINATION_CHAIN,
+		minBlockNumber: MIN_BLOCK_NUMBER,
+	});
 	return {
 		sourceChain: SOURCE_CHAIN,
 		destinationChain: DESTINATION_CHAIN,
