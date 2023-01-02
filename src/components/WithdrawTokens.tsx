@@ -16,7 +16,7 @@ interface Props {
 }
 
 export const WithdrawTokens: React.FC<Props> = ({ ...props }) => {
-	const { isGasless, networkContractAddresses, currentNetwork } = useAppState();
+	const { isGasless } = useAppState();
 	const [withdrawAmount, setWithdrawAmount] = useState("0.0");
 	const { config } = usePrepareContractWrite({
 		address: props.destinationBridgeAddress,
