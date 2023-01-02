@@ -17,22 +17,7 @@ async function main() {
 		await prisma.transaction.deleteMany();
 		console.log("Emptying finished");
 		console.log("Seeding database");
-		const blockchainJob = await prisma.job.createMany({
-			data: [
-				{
-					name: "read_source_deposits",
-				},
-				{
-					name: "mint_from_deposits",
-				},
-				{
-					name: "read_destination_withdrawals",
-				},
-				{
-					name: "burn_from_withdrawels",
-				},
-			],
-		});
+
 		console.log("Seeding finished.");
 	} else {
 		console.log("No need to seed database");

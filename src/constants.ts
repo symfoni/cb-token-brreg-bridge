@@ -171,3 +171,9 @@ export const BRIDGE_CHAIN_CONFIG = () => {
 		minBlockNumber: MIN_BLOCK_NUMBER,
 	};
 };
+
+export type BridgeChainConfig = {
+	sourceChain: Chain;
+	destinationChain: Chain;
+	minBlockNumber: Record<number, number>;
+};

@@ -23,7 +23,7 @@ export const WithdrawTokens: React.FC<Props> = ({ ...props }) => {
 		abi: BridgeABI,
 		functionName: "withdraw",
 		args: [validAndPostiveBN(withdrawAmount) ? ethers.utils.parseUnits(withdrawAmount, 4) : ethers.constants.Zero],
-		overrides: isGasless ? TX_OVERRIDE : undefined, // TX override if on external network / Bergen. No override if on localhost
+		overrides: isGasless() ? TX_OVERRIDE : undefined, // TX override if on external network / Bergen. No override if on localhost
 	});
 	const { write, writeAsync } = useContractWrite(config);
 	const [isWriting, setIsWriting] = useState(false);

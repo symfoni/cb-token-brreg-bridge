@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { GET_PROVIDER, CONTRACT_ADDRESSES, IS_GASSLESS, TX_OVERRIDE } from "../constants";
+import { GET_PROVIDER, CONTRACT_ADDRESSES, IS_GASSLESS, TX_OVERRIDE, BridgeChainConfig } from "../constants";
 import { Bridge__factory, CBToken__factory } from "../typechain-types";
 import prisma from "./prisma";
 import { Prisma, Status } from "@prisma/client";
@@ -13,11 +13,7 @@ import { Chain } from "wagmi";
 // 	[ARBITRUM_GOERLI.id]: 3336808,
 // };
 
-export async function burnBridgedTokensFromWithdrawels(params: {
-	sourceChain: Chain;
-	destinationChain: Chain;
-	minBlockNumber: Record<number, number>;
-}) {
+export async function burnBridgedTokensFromWithdrawels(params: BridgeChainConfig) {
 	const { sourceChain, destinationChain, minBlockNumber } = params;
 	try {
 		console.log("===== START burnBridgedTokensFromWithdrawels...");
@@ -34,7 +30,7 @@ export async function burnBridgedTokensFromWithdrawels(params: {
 		);
 		const sourceToken = CBToken__factory.connect(CONTRACT_ADDRESSES[sourceChain.id].CB_TOKEN_ADDRESS, walletSource);
 
-		const job = await getJob("burn_from_withdrawels");
+		const job = await getJob("burn_from_withdrawels", params);
 
 		const transactionsReadyForMinting = await prisma.transaction.findMany({
 			where: {
@@ -121,7 +117,11 @@ export async function burnBridgedTokensFromWithdrawels(params: {
 	} catch (error) {
 		prisma.job.update({
 			where: {
-				name: "mint_from_deposits",
+				chainBridgeJob: {
+					name: "mint_from_deposits",
+					destinationChain: destinationChain.id,
+					sourceChain: sourceChain.id,
+				},
 			},
 			data: {
 				running: false,
@@ -131,11 +131,7 @@ export async function burnBridgedTokensFromWithdrawels(params: {
 	}
 }
 
-export async function readWithdrawels(params: {
-	sourceChain: Chain;
-	destinationChain: Chain;
-	minBlockNumber: Record<number, number>;
-}) {
+export async function readWithdrawels(params: BridgeChainConfig) {
 	const { sourceChain, destinationChain, minBlockNumber } = params;
 	console.log("===== START readWithdrawels ...");
 	try {
@@ -145,7 +141,7 @@ export async function readWithdrawels(params: {
 		const walletDestination = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
 			GET_PROVIDER(destinationChain, { withNetwork: true }),
 		);
-		const job = await getJob("read_destination_withdrawals");
+		const job = await getJob("read_destination_withdrawals", params);
 		// const bridge = Bridge__factory.connect(CONTRACT_ADDRESSES[sourceChain.id].BRIDGE_SOURCE_ADDRESS, wallet);
 		const destinationToken = CBToken__factory.connect(
 			CONTRACT_ADDRESSES[destinationChain.id].CB_TOKEN_BRIDGE_ADDRESS,
@@ -216,7 +212,11 @@ export async function readWithdrawels(params: {
 	} catch (error) {
 		await prisma.job.update({
 			where: {
-				name: "read_source_deposits",
+				chainBridgeJob: {
+					name: "read_source_deposits",
+					destinationChain: destinationChain.id,
+					sourceChain: sourceChain.id,
+				},
 			},
 			data: {
 				running: false,
@@ -226,11 +226,7 @@ export async function readWithdrawels(params: {
 	}
 }
 
-export async function mintBridgedTokensFromDeposits(params: {
-	sourceChain: Chain;
-	destinationChain: Chain;
-	minBlockNumber: Record<number, number>;
-}) {
+export async function mintBridgedTokensFromDeposits(params: BridgeChainConfig) {
 	const { sourceChain, destinationChain, minBlockNumber } = params;
 	try {
 		console.log("===== START mintBridgedTokensFromDeposits...");
@@ -239,7 +235,7 @@ export async function mintBridgedTokensFromDeposits(params: {
 			GET_PROVIDER(destinationChain, { withNetwork: true }),
 		);
 
-		const job = await getJob("mint_from_deposits");
+		const job = await getJob("mint_from_deposits", params);
 
 		const transactionsReadyForMinting = await prisma.transaction.findMany({
 			where: {
@@ -316,7 +312,11 @@ export async function mintBridgedTokensFromDeposits(params: {
 	} catch (error) {
 		prisma.job.update({
 			where: {
-				name: "mint_from_deposits",
+				chainBridgeJob: {
+					name: "mint_from_deposits",
+					destinationChain: destinationChain.id,
+					sourceChain: sourceChain.id,
+				},
 			},
 			data: {
 				running: false,
@@ -326,18 +326,14 @@ export async function mintBridgedTokensFromDeposits(params: {
 	}
 }
 
-export async function readDeposits(params: {
-	sourceChain: Chain;
-	destinationChain: Chain;
-	minBlockNumber: Record<number, number>;
-}) {
+export async function readDeposits(params: BridgeChainConfig) {
 	const { sourceChain, destinationChain, minBlockNumber } = params;
 	console.log("===== START readDeposits...");
 	try {
 		const walletSource = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
 			GET_PROVIDER(sourceChain, { withNetwork: true }),
 		);
-		const job = await getJob("read_source_deposits");
+		const job = await getJob("read_source_deposits", params);
 		// const bridge = Bridge__factory.connect(CONTRACT_ADDRESSES[sourceChain.id].BRIDGE_SOURCE_ADDRESS, wallet);
 		const sourceToken = CBToken__factory.connect(CONTRACT_ADDRESSES[sourceChain.id].CB_TOKEN_ADDRESS, walletSource);
 
@@ -399,7 +395,11 @@ export async function readDeposits(params: {
 	} catch (error) {
 		prisma.job.update({
 			where: {
-				name: "read_source_deposits",
+				chainBridgeJob: {
+					name: "read_source_deposits",
+					destinationChain: destinationChain.id,
+					sourceChain: sourceChain.id,
+				},
 			},
 			data: {
 				running: false,
@@ -409,14 +409,29 @@ export async function readDeposits(params: {
 	}
 }
 
-async function getJob(name: string) {
-	const job = await prisma.job.findUnique({
+async function getJob(name: string, params: BridgeChainConfig) {
+	const { sourceChain, destinationChain } = params;
+	let job = await prisma.job.findUnique({
 		where: {
-			name,
+			chainBridgeJob: {
+				destinationChain: destinationChain.id,
+				sourceChain: sourceChain.id,
+				name,
+			},
 		},
 	});
 	if (!job) {
-		throw new Error("Job not found");
+		job = await prisma.job.create({
+			data: {
+				name,
+				running: false,
+				destinationChain: destinationChain.id,
+				sourceChain: sourceChain.id,
+			},
+		});
+		if (!job) {
+			throw new Error("Job not found after creating it.");
+		}
 	}
 	if (job.running) {
 		// if job was started for over 1 minnutes, then it is probably stuck, and we should restart it

@@ -5,7 +5,7 @@ import { ARBITRUM_GOERLI, CONTRACT_ADDRESSES, LOCAL_HARDHAT, NORGES_BANK_CHAIN }
 export interface AppState {
 	cbTokenAddress: Address;
 	currentNetwork: CurrentNetwork;
-	isGasless: boolean;
+	isGasless: () => boolean;
 	currentNetworkName: string;
 	networkContractAddresses: Record<CurrentNetwork, ContractAddresses>;
 	updateCurrentNetwork: (network: CurrentNetwork) => void;
@@ -44,7 +44,9 @@ export const useAppState = create<AppState>()(
 					.replace("_", " ") ?? "Unknown",
 			networkContractAddresses: CONTRACT_ADDRESSES,
 			cbTokenAddress: CONTRACT_ADDRESSES[DEFAULT_NETWORK].BRIDGE_DESTINATION_ADDRESS,
-			isGasless: get().currentNetwork === Networks.BERGEN,
+			isGasless: () => {
+				return get().currentNetwork === Networks.BERGEN;
+			},
 			updateCurrentNetwork: (network: CurrentNetwork) => {
 				set({
 					currentNetwork: network,

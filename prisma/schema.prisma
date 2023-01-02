@@ -24,12 +24,16 @@ enum Status {
 
 model Job {
   id                Int      @id @default(autoincrement())
-  name              String   @unique
+  name              String
   latestBlockNumber Int      @default(0)
   running           Boolean  @default(false)
   lastRunAt         DateTime @default(now())
   createdAt         DateTime @default(now())
+  sourceChain       Int
+  destinationChain  Int
   updatedAt         DateTime @updatedAt
+
+  @@unique([name, sourceChain, destinationChain], name: "chainBridgeJob")
 }
 
 model Transaction {
