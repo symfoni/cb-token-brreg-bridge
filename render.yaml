@@ -17,7 +17,7 @@ services:
   plan: Starter
   env: node
   schedule: "1 * * * *"
-  buildCommand: yarn; yarn build
+  buildCommand: yarn; yarn prisma generate; yarn build
   startCommand: yarn bot
 
 
