@@ -50,7 +50,7 @@ export const LOCAL_HARDHAT: Chain = {
 	testnet: false,
 };
 
-export const CHAINS: Chain[] = [NORGES_BANK_CHAIN, ARBITRUM_GOERLI, LOCAL_HARDHAT];
+export const CHAINS: Record<number, Chain> = [NORGES_BANK_CHAIN, ARBITRUM_GOERLI, LOCAL_HARDHAT];
 
 export const CONTRACT_ADDRESSES: Record<CurrentNetwork, ContractAddresses> = {
 	[LOCAL_HARDHAT.id]: {
