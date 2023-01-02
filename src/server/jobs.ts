@@ -1,13 +1,5 @@
 import { ethers } from "ethers";
-import {
-	GET_PROVIDER,
-	LOCAL_HARDHAT,
-	NORGES_BANK_CHAIN,
-	ARBITRUM_GOERLI,
-	CONTRACT_ADDRESSES,
-	IS_GASSLESS,
-	TX_OVERRIDE,
-} from "../constants";
+import { GET_PROVIDER, CONTRACT_ADDRESSES, IS_GASSLESS, TX_OVERRIDE } from "../constants";
 import { Bridge__factory, CBToken__factory } from "../typechain-types";
 import prisma from "./prisma";
 import { Prisma, Status } from "@prisma/client";
@@ -47,6 +39,8 @@ export async function burnBridgedTokensFromWithdrawels(params: {
 		const transactionsReadyForMinting = await prisma.transaction.findMany({
 			where: {
 				status: Status.WITHDRAWEL_RECEIEVED,
+				destinationChain: destinationChain.id,
+				sourceChain: sourceChain.id,
 			},
 		});
 		let receipts: ethers.ContractReceipt[] = [];
@@ -250,6 +244,8 @@ export async function mintBridgedTokensFromDeposits(params: {
 		const transactionsReadyForMinting = await prisma.transaction.findMany({
 			where: {
 				status: Status.DEPOSIT_RECEIVED,
+				destinationChain: destinationChain.id,
+				sourceChain: sourceChain.id,
 			},
 		});
 		let receipts: ethers.ContractReceipt[] = [];

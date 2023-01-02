@@ -44,7 +44,7 @@ export const useAppState = create<AppState>()(
 					.replace("_", " ") ?? "Unknown",
 			networkContractAddresses: CONTRACT_ADDRESSES,
 			cbTokenAddress: CONTRACT_ADDRESSES[DEFAULT_NETWORK].BRIDGE_DESTINATION_ADDRESS,
-			isGasless: DEFAULT_NETWORK === Networks.BERGEN,
+			isGasless: get().currentNetwork === Networks.BERGEN,
 			updateCurrentNetwork: (network: CurrentNetwork) => {
 				set({
 					currentNetwork: network,
