@@ -128,10 +128,12 @@ export const GET_PROVIDER = (chain: Chain, _params: { withNetwork?: boolean }) =
 
 export const BRIDGE_CHAIN_CONFIG = () => {
 	const sourceChainConfig =
-		process.env.SOURCE_CHAIN && !Number.isNaN(process.env.SOURCE_CHAIN) ? parseInt(process.env.SOURCE_CHAIN) : false;
+		process.env.NEXT_PUBLIC_SOURCE_CHAIN && !Number.isNaN(process.env.NEXT_PUBLIC_SOURCE_CHAIN)
+			? parseInt(process.env.NEXT_PUBLIC_SOURCE_CHAIN)
+			: false;
 	const destinationChainConfig =
-		process.env.DESTINATION_CHAIN && !Number.isNaN(process.env.DESTINATION_CHAIN)
-			? parseInt(process.env.DESTINATION_CHAIN)
+		process.env.NEXT_PUBLIC_DESTINATION_CHAIN && !Number.isNaN(process.env.NEXT_PUBLIC_DESTINATION_CHAIN)
+			? parseInt(process.env.NEXT_PUBLIC_DESTINATION_CHAIN)
 			: false;
 
 	const SOURCE_CHAIN = sourceChainConfig ? CHAINS.find((chain) => chain.id === sourceChainConfig) : LOCAL_HARDHAT;

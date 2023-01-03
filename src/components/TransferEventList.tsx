@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Col, Row, Text } from "@nextui-org/react";
 import { Address, useContractEvent } from "wagmi";
 import { cbTokenABI } from "../abis/CBToken";
@@ -14,7 +14,7 @@ interface Props {
 }
 
 export const TransferEventList: React.FC<Props> = ({ ...props }) => {
-	const [perAccount, setPerAccount] = useState(false);
+	const [_perAccount, setPerAccount] = useState(false);
 	const [deposits, setDeposits] = useState<
 		{ amount: ethers.BigNumber; blockNumber: number; transactionHash: string }[]
 	>([]);
@@ -46,6 +46,13 @@ export const TransferEventList: React.FC<Props> = ({ ...props }) => {
 		},
 		once: false,
 	});
+	useEffect(() => {
+		return () => {
+			if (props.tokenAddress) {
+				setDeposits([]);
+			}
+		};
+	}, [props.tokenAddress]);
 
 	return (
 		<>

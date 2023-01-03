@@ -16,7 +16,7 @@ interface Props {
 }
 
 export const TransferToken: React.FC<Props> = ({ ...props }) => {
-	const { isGasless, networkContractAddresses, currentNetwork } = useAppState();
+	const { isGasless, destinationNetworkName } = useAppState();
 	const [transferAmount, setTransferAmount] = useState("0.0");
 	const { config } = usePrepareContractWrite({
 		address: props.tokenAddress,
@@ -67,7 +67,11 @@ export const TransferToken: React.FC<Props> = ({ ...props }) => {
 			</Grid>
 			<Grid xs={12}>
 				<Button style={{ width: "100%" }} size={"xl"} disabled={!write} onPress={() => handleWrite()}>
-					{isWriting ? <Loading color={"currentColor"}></Loading> : "Deposit tokens"}
+					{isWriting ? (
+						<Loading color={"currentColor"}></Loading>
+					) : (
+						`Send to ${destinationNetworkName.toLocaleLowerCase()}`
+					)}
 				</Button>
 			</Grid>
 		</Grid.Container>

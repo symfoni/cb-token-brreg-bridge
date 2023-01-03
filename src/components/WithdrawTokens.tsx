@@ -16,7 +16,7 @@ interface Props {
 }
 
 export const WithdrawTokens: React.FC<Props> = ({ ...props }) => {
-	const { isGasless } = useAppState();
+	const { isGasless, sourceNetworkName } = useAppState();
 	const [withdrawAmount, setWithdrawAmount] = useState("0.0");
 	const { config } = usePrepareContractWrite({
 		address: props.destinationBridgeAddress,
@@ -64,7 +64,7 @@ export const WithdrawTokens: React.FC<Props> = ({ ...props }) => {
 			</Grid>
 			<Grid xs={12}>
 				<Button style={{ width: "100%" }} size={"xl"} disabled={!write} onPress={() => handleWrite()}>
-					{isWriting ? <Loading color={"currentColor"}></Loading> : "Withdraw tokens"}
+					{isWriting ? <Loading color={"currentColor"}></Loading> : `Send to ${sourceNetworkName.toLocaleLowerCase()}`}
 				</Button>
 			</Grid>
 		</Grid.Container>

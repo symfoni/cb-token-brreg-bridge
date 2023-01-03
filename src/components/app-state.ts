@@ -7,8 +7,12 @@ export interface AppState {
 	currentNetwork: CurrentNetwork;
 	isGasless: () => boolean;
 	currentNetworkName: string;
+	sourceNetworkName: string;
+	destinationNetworkName: string;
 	networkContractAddresses: Record<CurrentNetwork, ContractAddresses>;
 	updateCurrentNetwork: (network: CurrentNetwork) => void;
+	isSourceNetwork: () => boolean;
+	isDestinationNetwork: () => boolean;
 }
 
 const Networks = {
@@ -32,6 +36,9 @@ export type ContractAddresses = {
 
 const DEFAULT_NETWORK = process.env.NODE_ENV === "development" ? Networks.LOCAL_HARDHAT : Networks.BERGEN;
 
+const SOURCE_CHAIN = parseInt(process.env.NEXT_PUBLIC_SOURCE_CHAIN!);
+const DESTINATION_CHAIN = parseInt(process.env.NEXT_PUBLIC_DESTINATION_CHAIN!);
+
 export const useAppState = create<AppState>()(
 	// persist(
 	// Cant run persist to have a default state. See issue: https://github.com/pmndrs/zustand/issues/366#issuecomment-845497855
@@ -42,10 +49,24 @@ export const useAppState = create<AppState>()(
 				Object.entries(Networks)
 					.find(([name, chainId]) => chainId === DEFAULT_NETWORK)?.[0]
 					.replace("_", " ") ?? "Unknown",
+			sourceNetworkName:
+				Object.entries(Networks)
+					.find(([name, chainId]) => chainId === SOURCE_CHAIN)?.[0]
+					.replace("_", " ") ?? "Unknown",
+			destinationNetworkName:
+				Object.entries(Networks)
+					.find(([name, chainId]) => chainId === DESTINATION_CHAIN)?.[0]
+					.replace("_", " ") ?? "Unknown",
 			networkContractAddresses: CONTRACT_ADDRESSES,
 			cbTokenAddress: CONTRACT_ADDRESSES[DEFAULT_NETWORK].BRIDGE_DESTINATION_ADDRESS,
 			isGasless: () => {
-				return get().currentNetwork === Networks.BERGEN;
+				return get().currentNetwork === SOURCE_CHAIN;
+			},
+			isSourceNetwork: () => {
+				return get().currentNetwork === SOURCE_CHAIN;
+			},
+			isDestinationNetwork: () => {
+				return get().currentNetwork === DESTINATION_CHAIN;
 			},
 			updateCurrentNetwork: (network: CurrentNetwork) => {
 				set({
