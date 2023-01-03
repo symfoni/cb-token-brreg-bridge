@@ -6,6 +6,8 @@ import {
 	mintBridgedTokensFromDeposits,
 	readWithdrawels,
 	burnBridgedTokensFromWithdrawels,
+	readAuthenticatedAddresses,
+	syncAuthenticatedAddresses,
 } from "../../server/jobs";
 
 type Data = {
@@ -14,6 +16,8 @@ type Data = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	const chainConfig = BRIDGE_CHAIN_CONFIG();
+	await readAuthenticatedAddresses(chainConfig);
+	await syncAuthenticatedAddresses(chainConfig);
 	await readDeposits(chainConfig);
 	await mintBridgedTokensFromDeposits(chainConfig);
 	await readWithdrawels(chainConfig);

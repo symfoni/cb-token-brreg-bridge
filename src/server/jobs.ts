@@ -1,17 +1,216 @@
 import { ethers } from "ethers";
 import { GET_PROVIDER, CONTRACT_ADDRESSES, IS_GASSLESS, TX_OVERRIDE, BridgeChainConfig } from "../constants";
-import { Bridge__factory, CBToken__factory } from "../typechain-types";
+import { Bridge__factory, CBToken__factory, VCRegistry__factory } from "../typechain-types";
 import prisma from "./prisma";
 import { Prisma, Status } from "@prisma/client";
-import { Chain } from "wagmi";
 
-// const sourceChain = process.env.NODE_ENV === "development" ? LOCAL_HARDHAT : NORGES_BANK_CHAIN;
-// const destinationChain = process.env.NODE_ENV === "development" ? NORGES_BANK_CHAIN : ARBITRUM_GOERLI;
-// const minBlockNumber = {
-// 	[LOCAL_HARDHAT.id]: 0,
-// 	[NORGES_BANK_CHAIN.id]: 3755065,
-// 	[ARBITRUM_GOERLI.id]: 3336808,
-// };
+export async function readAuthenticatedAddresses(params: BridgeChainConfig) {
+	const { sourceChain, destinationChain, minBlockNumber } = params;
+	console.log("===== START syncVCRegistry ...");
+	try {
+		const walletSource = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
+			GET_PROVIDER(sourceChain, { withNetwork: true }),
+		);
+
+		const job = await getJob("read_authenticated_addresses", params);
+		const sourceVCRegistry = VCRegistry__factory.connect(
+			CONTRACT_ADDRESSES[sourceChain.id].VC_REGISTRY_ADDRESS,
+			walletSource,
+		);
+
+		// Transfers to Zero Address are considered withdrawels
+		const authenticatePersonEvents = await sourceVCRegistry.queryFilter(
+			sourceVCRegistry.filters.AuthenticatedPerson(null),
+			Math.max(minBlockNumber[sourceChain.id], job.latestBlockNumber),
+			"latest",
+		);
+		const authenticateContractEvents = await sourceVCRegistry.queryFilter(
+			sourceVCRegistry.filters.PersonAuthenticatedContract(null),
+			Math.max(minBlockNumber[sourceChain.id], job.latestBlockNumber),
+			"latest",
+		);
+		let transactions: Prisma.TransactionCreateInput[] = [];
+		let latest_block = job.latestBlockNumber;
+		for (const event of [...authenticatePersonEvents, ...authenticateContractEvents]) {
+			const address =
+				"authenticatedAddress" in event.args ? event.args.authenticatedAddress : event.args.contractAddress;
+
+			const hasTransaction = await prisma.transaction.findFirst({
+				where: {
+					txHashBurn: event.transactionHash,
+				},
+			});
+			if (hasTransaction) {
+				console.log(
+					`Transaction ${event.transactionHash}, with authenticatedAddress: ${address} already exists, skipping...`,
+				);
+				continue;
+			}
+
+			const transaction = {
+				amount: ethers.constants.Zero.toBigInt(),
+				address: address,
+				blockNumber: event.blockNumber,
+				destinationChain: destinationChain.id,
+				sourceChain: sourceChain.id,
+				txHashBurn: event.transactionHash,
+				status: Status.SYNC_RECEIVED as Status,
+			};
+			transactions = [...transactions, transaction];
+			latest_block = event.blockNumber;
+		}
+		console.log(
+			`Read ${transactions.length} transactions from block ${Math.max(
+				minBlockNumber[destinationChain.id],
+				job.latestBlockNumber,
+			)} to ${latest_block}`,
+		);
+		const [updatedJob, updatedTransactions] = await prisma.$transaction([
+			prisma.job.update({
+				where: {
+					id: job.id,
+				},
+				data: {
+					running: false,
+					latestBlockNumber: latest_block,
+					lastRunAt: new Date(),
+				},
+			}),
+			prisma.transaction.createMany({
+				data: transactions,
+			}),
+		]);
+		console.log("===== END syncVCRegistry...");
+		return { updatedJob, updatedTransactions };
+	} catch (error) {
+		await prisma.job.update({
+			where: {
+				chainBridgeJob: {
+					name: "read_authenticated_addresses",
+					destinationChain: destinationChain.id,
+					sourceChain: sourceChain.id,
+				},
+			},
+			data: {
+				running: false,
+			},
+		});
+		console.error(error);
+	}
+}
+
+export async function syncAuthenticatedAddresses(params: BridgeChainConfig) {
+	const { sourceChain, destinationChain, minBlockNumber } = params;
+	try {
+		console.log("===== START syncAuthenticatedAddresses...");
+
+		const walletDestination = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
+			GET_PROVIDER(destinationChain, { withNetwork: true }),
+		);
+		const destinationVCRegistry = VCRegistry__factory.connect(
+			CONTRACT_ADDRESSES[destinationChain.id].VC_REGISTRY_ADDRESS,
+			walletDestination,
+		);
+
+		const job = await getJob("sync_authenticated_addresses", params);
+
+		const addressesReaadyForSync = await prisma.transaction.findMany({
+			where: {
+				status: Status.SYNC_RECEIVED,
+				destinationChain: destinationChain.id,
+				sourceChain: sourceChain.id,
+			},
+		});
+		let receipts: ethers.ContractReceipt[] = [];
+
+		const ONE_YEAR = 52 * 7 * 24 * 60 * 60;
+
+		for (const transaction of addressesReaadyForSync) {
+			try {
+				const verfifiedBefore = await destinationVCRegistry.checkAuthenticated(transaction.address, ONE_YEAR);
+				if (verfifiedBefore) {
+					console.log(`Address ${transaction.address} already verified on ${destinationChain.id}, skipping...`);
+					await prisma.transaction.update({
+						where: {
+							id: transaction.id,
+						},
+						data: {
+							status: Status.SYNC_SUCCESS,
+						},
+					});
+					continue;
+				}
+				const syncTx = IS_GASSLESS(sourceChain)
+					? await destinationVCRegistry.setAuthenticatedPerson(transaction.address, TX_OVERRIDE)
+					: await destinationVCRegistry.setAuthenticatedPerson(transaction.address);
+
+				await prisma.transaction.update({
+					where: {
+						id: transaction.id,
+					},
+					data: {
+						status: Status.SYNC_INITIATED,
+					},
+				});
+				const receiptSync = await syncTx.wait();
+				console.log(`Synced ${transaction.address} from {${sourceChain.id}} to {${destinationChain.id}`);
+
+				receipts = [...receipts, receiptSync];
+				const verfifiedAfter = await destinationVCRegistry.checkAuthenticatedOnce(transaction.address);
+				if (!verfifiedAfter) {
+					throw new Error(`Address ${transaction.address} not verified after sync on ${destinationChain.id}`);
+				}
+				console.log(`Address ${transaction.address} verified on ${destinationChain.id} after sync`);
+				await prisma.transaction.update({
+					where: {
+						id: transaction.id,
+					},
+					data: {
+						status: Status.SYNC_SUCCESS,
+					},
+				});
+			} catch (error) {
+				console.log("Error syncing address", error);
+				const updatedTransaction2 = await prisma.transaction.update({
+					where: {
+						id: transaction.id,
+					},
+					data: {
+						status: Status.ERROR,
+					},
+				});
+			}
+		}
+
+		// update job
+		await prisma.job.update({
+			where: {
+				id: job.id,
+			},
+			data: {
+				running: false,
+				lastRunAt: new Date(),
+			},
+		});
+
+		console.log("===== END syncAuthenticatedAddresses...");
+		return receipts;
+	} catch (error) {
+		prisma.job.update({
+			where: {
+				chainBridgeJob: {
+					name: "sync_authenticated_addresses",
+					destinationChain: destinationChain.id,
+					sourceChain: sourceChain.id,
+				},
+			},
+			data: {
+				running: false,
+			},
+		});
+		console.error(error);
+	}
+}
 
 export async function burnBridgedTokensFromWithdrawels(params: BridgeChainConfig) {
 	const { sourceChain, destinationChain, minBlockNumber } = params;

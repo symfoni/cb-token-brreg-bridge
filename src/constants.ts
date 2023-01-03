@@ -134,7 +134,6 @@ export const BRIDGE_CHAIN_CONFIG = () => {
 			? parseInt(process.env.DESTINATION_CHAIN)
 			: false;
 
-	console.log(CHAINS);
 	const SOURCE_CHAIN = sourceChainConfig ? CHAINS.find((chain) => chain.id === sourceChainConfig) : LOCAL_HARDHAT;
 	const DESTINATION_CHAIN = destinationChainConfig
 		? CHAINS.find((chain) => chain.id === destinationChainConfig)
@@ -159,12 +158,6 @@ export const BRIDGE_CHAIN_CONFIG = () => {
 				? parseInt(process.env.FROM_BLOCK_ARBITRUM_GOERLI)
 				: 3336808,
 	};
-	console.log("chain config");
-	console.log({
-		sourceChain: SOURCE_CHAIN,
-		destinationChain: DESTINATION_CHAIN,
-		minBlockNumber: MIN_BLOCK_NUMBER,
-	});
 	return {
 		sourceChain: SOURCE_CHAIN,
 		destinationChain: DESTINATION_CHAIN,
