@@ -37,7 +37,7 @@ export async function readAuthenticatedAddresses(params: BridgeChainConfig) {
 
 			const hasTransaction = await prisma.transaction.findFirst({
 				where: {
-					receipt: event.transactionHash,
+					sourceTx: event.transactionHash,
 				},
 			});
 			if (hasTransaction) {
@@ -53,7 +53,7 @@ export async function readAuthenticatedAddresses(params: BridgeChainConfig) {
 				blockNumber: event.blockNumber,
 				destinationChain: destinationChain.id,
 				sourceChain: sourceChain.id,
-				txHashBurn: event.transactionHash,
+				sourceTxt: event.transactionHash,
 				status: Status.RECEIVED,
 				type: TransactionType.VC_SYNC,
 			};

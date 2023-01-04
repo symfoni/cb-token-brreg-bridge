@@ -40,10 +40,6 @@ const DEFAULT_NETWORK = process.env.NODE_ENV === "development" ? Networks.LOCAL_
 const SOURCE_CHAIN = parseInt(process.env.NEXT_PUBLIC_SOURCE_CHAIN!);
 const DESTINATION_CHAIN = parseInt(process.env.NEXT_PUBLIC_DESTINATION_CHAIN!);
 
-const wallet = ethers.Wallet.createRandom();
-console.log("wallet", wallet.address);
-wallet.encrypt("123").then((v) => console.log(v));
-
 export const useAppState = create<AppState>()(
 	// persist(
 	// Cant run persist to have a default state. See issue: https://github.com/pmndrs/zustand/issues/366#issuecomment-845497855
