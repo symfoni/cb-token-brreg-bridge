@@ -53,7 +53,7 @@ export async function readAuthenticatedAddresses(params: BridgeChainConfig) {
 				blockNumber: event.blockNumber,
 				destinationChain: destinationChain.id,
 				sourceChain: sourceChain.id,
-				sourceTxt: event.transactionHash,
+				sourceTx: event.transactionHash,
 				status: Status.RECEIVED,
 				type: TransactionType.VC_SYNC,
 			};
@@ -242,7 +242,7 @@ export async function burnBridgedTokensFromWithdrawels(params: BridgeChainConfig
 
 		const job = await getJob("burn_from_withdrawels", params);
 
-		const transactionsReadyForMinting = await prisma.transaction.findMany({
+		const transactionsReadyForWithdrawel = await prisma.transaction.findMany({
 			where: {
 				status: Status.INITIATED,
 				destinationChain: destinationChain.id,
@@ -252,7 +252,7 @@ export async function burnBridgedTokensFromWithdrawels(params: BridgeChainConfig
 		});
 		let receipts: ethers.ContractReceipt[] = [];
 
-		for (const transaction of transactionsReadyForMinting) {
+		for (const transaction of transactionsReadyForWithdrawel) {
 			try {
 				const balanceForBridgeBefore = await sourceToken.balanceOf(
 					CONTRACT_ADDRESSES[sourceChain.id].BRIDGE_SOURCE_ADDRESS,
@@ -338,7 +338,7 @@ export async function burnBridgedTokensFromWithdrawels(params: BridgeChainConfig
 		prisma.job.update({
 			where: {
 				chainBridgeJob: {
-					name: "mint_from_deposits",
+					name: "burn_from_withdrawels",
 					destinationChain: destinationChain.id,
 					sourceChain: sourceChain.id,
 				},
@@ -478,8 +478,6 @@ export async function mintBridgedTokensFromDeposits(params: BridgeChainConfig) {
 					walletDestionation,
 				);
 
-				if (IS_GASSLESS(destinationChain)) {
-				}
 				const mintTx = IS_GASSLESS(destinationChain)
 					? await destinationBridge.deposit(transaction.address, ethers.BigNumber.from(transaction.amount), TX_OVERRIDE)
 					: await destinationBridge.deposit(transaction.address, ethers.BigNumber.from(transaction.amount));
