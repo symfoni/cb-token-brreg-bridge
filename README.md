@@ -9,6 +9,16 @@ Features
 - Created for ease of use, not security.
 
 
+# Run locally
+You need a local blockchain. You can spin up all contracts and local blockchain in this project: https://github.com/symfoni/cb-token-brreg-bridge-contracts
+
+You will also need connections to other chains, fill out these in .env variables.
+
+1. `cp .env.example .env` and fill in env variables.
+2. `yarn install`
+3. `yarn dev`
+
+
 # Sync VC registry
 
 ![Diagram showing how VC registry sync works](images/job_authenticate.png)
