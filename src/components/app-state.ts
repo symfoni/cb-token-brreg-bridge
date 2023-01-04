@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import { Address } from "wagmi";
 import create from "zustand";
 import { ARBITRUM_GOERLI, CONTRACT_ADDRESSES, LOCAL_HARDHAT, NORGES_BANK_CHAIN } from "../constants";
@@ -38,6 +39,10 @@ const DEFAULT_NETWORK = process.env.NODE_ENV === "development" ? Networks.LOCAL_
 
 const SOURCE_CHAIN = parseInt(process.env.NEXT_PUBLIC_SOURCE_CHAIN!);
 const DESTINATION_CHAIN = parseInt(process.env.NEXT_PUBLIC_DESTINATION_CHAIN!);
+
+const wallet = ethers.Wallet.createRandom();
+console.log("wallet", wallet.address);
+wallet.encrypt("123").then((v) => console.log(v));
 
 export const useAppState = create<AppState>()(
 	// persist(

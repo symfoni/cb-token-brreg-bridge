@@ -11,18 +11,18 @@ datasource db {
 }
 
 enum Status {
-  DEPOSIT_RECEIVED
-  DEPOSIT_INITIATED
-  DEPOSIT_SUCCESS
-  ERROR
-  WITHDRAWEL_RECEIEVED
-  BURN_INTIATED
-  BURN_SUCCESS
-  WITHDRAWEL_INITIATED
-  WITHDRAWEL_SUCCESS
-  SYNC_RECEIVED
-  SYNC_INITIATED
-  SYNC_SUCCESS
+  RECEIVED
+  INITIATED
+  SUCCESS
+  ERROR_1
+  ERROR_2
+  ERROR_3
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWEL
+  VC_SYNC
 }
 
 model Job {
@@ -40,17 +40,17 @@ model Job {
 }
 
 model Transaction {
-  id               Int      @id @default(autoincrement())
-  txHashDeposit    String?  @unique
-  txHashMint       String?  @unique
-  txHashBurn       String?  @unique
-  txHashWithdrawel String?  @unique
+  id               Int             @id @default(autoincrement())
+  type             TransactionType
+  receipt          String?         @unique
+  sourceTx         String?         @unique
   blockNumber      Int
   sourceChain      Int
   destinationChain Int
   amount           BigInt
   address          String
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
   status           Status
+  message          String?
 }

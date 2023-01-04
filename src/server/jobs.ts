@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { GET_PROVIDER, CONTRACT_ADDRESSES, IS_GASSLESS, TX_OVERRIDE, BridgeChainConfig } from "../constants";
 import { Bridge__factory, CBToken__factory, VCRegistry__factory } from "../typechain-types";
 import prisma from "./prisma";
-import { Prisma, Status } from "@prisma/client";
+import { Prisma, Status, TransactionType } from "@prisma/client";
 
 export async function readAuthenticatedAddresses(params: BridgeChainConfig) {
 	const { sourceChain, destinationChain, minBlockNumber } = params;
@@ -37,7 +37,7 @@ export async function readAuthenticatedAddresses(params: BridgeChainConfig) {
 
 			const hasTransaction = await prisma.transaction.findFirst({
 				where: {
-					txHashBurn: event.transactionHash,
+					receipt: event.transactionHash,
 				},
 			});
 			if (hasTransaction) {
@@ -54,7 +54,8 @@ export async function readAuthenticatedAddresses(params: BridgeChainConfig) {
 				destinationChain: destinationChain.id,
 				sourceChain: sourceChain.id,
 				txHashBurn: event.transactionHash,
-				status: Status.SYNC_RECEIVED as Status,
+				status: Status.RECEIVED,
+				type: TransactionType.VC_SYNC,
 			};
 			transactions = [...transactions, transaction];
 			latest_block = event.blockNumber;
@@ -116,7 +117,8 @@ export async function syncAuthenticatedAddresses(params: BridgeChainConfig) {
 
 		const addressesReaadyForSync = await prisma.transaction.findMany({
 			where: {
-				status: Status.SYNC_RECEIVED,
+				status: Status.RECEIVED,
+				type: TransactionType.VC_SYNC,
 				destinationChain: destinationChain.id,
 				sourceChain: sourceChain.id,
 			},
@@ -135,12 +137,12 @@ export async function syncAuthenticatedAddresses(params: BridgeChainConfig) {
 							id: transaction.id,
 						},
 						data: {
-							status: Status.SYNC_SUCCESS,
+							status: Status.SUCCESS,
 						},
 					});
 					continue;
 				}
-				const syncTx = IS_GASSLESS(sourceChain)
+				const syncTx = IS_GASSLESS(destinationChain)
 					? await destinationVCRegistry.setAuthenticatedPerson(transaction.address, TX_OVERRIDE)
 					: await destinationVCRegistry.setAuthenticatedPerson(transaction.address);
 
@@ -149,7 +151,8 @@ export async function syncAuthenticatedAddresses(params: BridgeChainConfig) {
 						id: transaction.id,
 					},
 					data: {
-						status: Status.SYNC_INITIATED,
+						status: Status.INITIATED,
+						receipt: syncTx.hash,
 					},
 				});
 				const receiptSync = await syncTx.wait();
@@ -166,17 +169,25 @@ export async function syncAuthenticatedAddresses(params: BridgeChainConfig) {
 						id: transaction.id,
 					},
 					data: {
-						status: Status.SYNC_SUCCESS,
+						status: Status.SUCCESS,
+						receipt: receiptSync.transactionHash,
 					},
 				});
 			} catch (error) {
 				console.log("Error syncing address", error);
+				let errorMessage = "";
+				if (error instanceof Error && typeof error.message === "string") {
+					errorMessage = error.message;
+				} else {
+					errorMessage = JSON.stringify(error);
+				}
 				const updatedTransaction2 = await prisma.transaction.update({
 					where: {
 						id: transaction.id,
 					},
 					data: {
-						status: Status.ERROR,
+						status: Status.ERROR_1,
+						message: errorMessage,
 					},
 				});
 			}
@@ -233,9 +244,10 @@ export async function burnBridgedTokensFromWithdrawels(params: BridgeChainConfig
 
 		const transactionsReadyForMinting = await prisma.transaction.findMany({
 			where: {
-				status: Status.WITHDRAWEL_RECEIEVED,
+				status: Status.INITIATED,
 				destinationChain: destinationChain.id,
 				sourceChain: sourceChain.id,
+				type: TransactionType.WITHDRAWEL,
 			},
 		});
 		let receipts: ethers.ContractReceipt[] = [];
@@ -263,7 +275,8 @@ export async function burnBridgedTokensFromWithdrawels(params: BridgeChainConfig
 						id: transaction.id,
 					},
 					data: {
-						status: Status.WITHDRAWEL_INITIATED,
+						status: Status.INITIATED,
+						receipt: withdrawelTx.hash,
 					},
 				});
 				const receiptWithdrawel = await withdrawelTx.wait();
@@ -277,7 +290,8 @@ export async function burnBridgedTokensFromWithdrawels(params: BridgeChainConfig
 						id: transaction.id,
 					},
 					data: {
-						status: Status.WITHDRAWEL_SUCCESS,
+						status: Status.SUCCESS,
+						receipt: receiptWithdrawel.transactionHash,
 					},
 				});
 				receipts = [...receipts, receiptWithdrawel];
@@ -289,12 +303,19 @@ export async function burnBridgedTokensFromWithdrawels(params: BridgeChainConfig
 				console.log("balanceForUserAfter", ethers.utils.formatUnits(balanceForUserAfter, 4));
 			} catch (error) {
 				console.log("Error withdrawing tokens", error);
+				let errorMessage = "";
+				if (error instanceof Error && typeof error.message === "string") {
+					errorMessage = error.message;
+				} else {
+					errorMessage = JSON.stringify(error);
+				}
 				const updatedTransaction2 = await prisma.transaction.update({
 					where: {
 						id: transaction.id,
 					},
 					data: {
-						status: Status.ERROR,
+						status: Status.ERROR_1,
+						message: errorMessage,
 					},
 				});
 			}
@@ -360,7 +381,7 @@ export async function readWithdrawels(params: BridgeChainConfig) {
 
 			const hasTransaction = await prisma.transaction.findFirst({
 				where: {
-					txHashBurn: event.transactionHash,
+					sourceTx: event.transactionHash,
 				},
 			});
 			if (hasTransaction) {
@@ -379,8 +400,9 @@ export async function readWithdrawels(params: BridgeChainConfig) {
 				blockNumber: event.blockNumber,
 				destinationChain: destinationChain.id,
 				sourceChain: sourceChain.id,
-				txHashBurn: event.transactionHash,
-				status: Status.WITHDRAWEL_RECEIEVED as Status,
+				sourceTx: event.transactionHash,
+				status: Status.RECEIVED as Status,
+				type: TransactionType.WITHDRAWEL as TransactionType,
 			};
 			transactions = [...transactions, transaction];
 			latest_block = event.blockNumber;
@@ -438,9 +460,10 @@ export async function mintBridgedTokensFromDeposits(params: BridgeChainConfig) {
 
 		const transactionsReadyForMinting = await prisma.transaction.findMany({
 			where: {
-				status: Status.DEPOSIT_RECEIVED,
+				status: Status.RECEIVED,
 				destinationChain: destinationChain.id,
 				sourceChain: sourceChain.id,
+				type: TransactionType.DEPOSIT,
 			},
 		});
 		let receipts: ethers.ContractReceipt[] = [];
@@ -465,8 +488,8 @@ export async function mintBridgedTokensFromDeposits(params: BridgeChainConfig) {
 						id: transaction.id,
 					},
 					data: {
-						status: Status.DEPOSIT_INITIATED,
-						txHashMint: mintTx.hash,
+						status: Status.INITIATED,
+						receipt: mintTx.hash,
 					},
 				});
 				const receipt = await mintTx.wait();
@@ -475,8 +498,8 @@ export async function mintBridgedTokensFromDeposits(params: BridgeChainConfig) {
 						id: transaction.id,
 					},
 					data: {
-						status: Status.DEPOSIT_SUCCESS,
-						txHashMint: mintTx.hash,
+						status: Status.SUCCESS,
+						receipt: receipt.transactionHash,
 					},
 				});
 				receipts = [...receipts, receipt];
@@ -484,12 +507,19 @@ export async function mintBridgedTokensFromDeposits(params: BridgeChainConfig) {
 				console.log("New balance", ethers.utils.formatUnits(newBalance, 4));
 			} catch (error) {
 				console.log("Error minting tokens", error);
+				let errorMessage = "";
+				if (error instanceof Error && typeof error.message === "string") {
+					errorMessage = error.message;
+				} else {
+					errorMessage = JSON.stringify(error);
+				}
 				const updatedTransaction2 = await prisma.transaction.update({
 					where: {
 						id: transaction.id,
 					},
 					data: {
-						status: Status.ERROR,
+						status: Status.ERROR_1,
+						message: errorMessage,
 					},
 				});
 			}
@@ -548,7 +578,7 @@ export async function readDeposits(params: BridgeChainConfig) {
 
 			const hasTransaction = await prisma.transaction.findFirst({
 				where: {
-					txHashDeposit: event.transactionHash,
+					sourceTx: event.transactionHash,
 				},
 			});
 			if (hasTransaction) {
@@ -567,8 +597,9 @@ export async function readDeposits(params: BridgeChainConfig) {
 				blockNumber: event.blockNumber,
 				destinationChain: destinationChain.id,
 				sourceChain: sourceChain.id,
-				txHashDeposit: event.transactionHash,
-				status: Status.DEPOSIT_RECEIVED as Status,
+				sourceTx: event.transactionHash,
+				status: Status.RECEIVED as Status,
+				type: TransactionType.DEPOSIT as TransactionType,
 			};
 			transactions = [...transactions, transaction];
 			latest_block = event.blockNumber;

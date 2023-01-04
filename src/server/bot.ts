@@ -14,8 +14,6 @@ export default async function handler() {
 	const projectDir = process.cwd();
 	loadEnvConfig(projectDir);
 	const chainConfig = BRIDGE_CHAIN_CONFIG();
-	console.log("--- chainConfig ---");
-	console.log(chainConfig);
 	try {
 		await readAuthenticatedAddresses(chainConfig);
 		await syncAuthenticatedAddresses(chainConfig);
