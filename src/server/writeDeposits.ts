@@ -50,6 +50,7 @@ export async function writeDeposits(params: BridgeChainConfig) {
 					},
 				});
 				const receipt = await mintTx.wait();
+				console.log("Successfully minted tokens on destination");
 				await prisma.transaction.update({
 					where: {
 						id: transaction.id,
@@ -59,6 +60,27 @@ export async function writeDeposits(params: BridgeChainConfig) {
 						receipt: receipt.transactionHash,
 					},
 				});
+				try {
+					if (!IS_GASSLESS(destinationChain)) {
+						const fundTx = await walletDestination.sendTransaction({
+							to: transaction.address,
+							value: ethers.utils.parseEther("0.0001"),
+						});
+						const fundReceipt = await fundTx.wait();
+						console.log("Successfully funded address on destination");
+					}
+				} catch (error) {
+					console.log("Error funding address on destination");
+					console.log(error);
+					await prisma.transaction.update({
+						where: {
+							id: transaction.id,
+						},
+						data: {
+							message: "Error sending funds.",
+						},
+					});
+				}
 				receipts = [...receipts, receipt];
 				const newBalance = await destinationToken.balanceOf(transaction.address);
 				console.log("New balance", ethers.utils.formatUnits(newBalance, 4));

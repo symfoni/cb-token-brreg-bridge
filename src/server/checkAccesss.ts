@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { GET_PROVIDER, BridgeChainConfig, CONTRACT_ADDRESSES } from "../constants";
+import { GET_PROVIDER, BridgeChainConfig, CONTRACT_ADDRESSES, IS_GASSLESS } from "../constants";
 import { Bridge__factory, CBToken__factory, VCRegistry__factory } from "../typechain-types";
 
 export async function checkAccesss(params: BridgeChainConfig) {
@@ -10,6 +10,20 @@ export async function checkAccesss(params: BridgeChainConfig) {
 	const walletDestination = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
 		GET_PROVIDER(destinationChain, { withNetwork: true }),
 	);
+	if (!IS_GASSLESS(sourceChain)) {
+		const balance = await walletSource.getBalance();
+		console.log("Bridge Owner balance in source chain wallet", ethers.utils.formatEther(balance));
+		if (balance.lt(ethers.utils.parseEther("0.001"))) {
+			throw new Error("Not enough balance on Bridge Owner in source chain wallet");
+		}
+	}
+	if (!IS_GASSLESS(destinationChain)) {
+		const balance = await walletDestination.getBalance();
+		console.log("Bridge Owner balance in destination chain wallet", ethers.utils.formatEther(balance));
+		if (balance.lt(ethers.utils.parseEther("0.001"))) {
+			throw new Error("Not enough balance on Bridge Owner in destination chain wallet");
+		}
+	}
 	const destinationVCRegistry = VCRegistry__factory.connect(
 		CONTRACT_ADDRESSES[destinationChain.id].VC_REGISTRY_ADDRESS,
 		walletDestination,
