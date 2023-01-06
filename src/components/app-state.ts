@@ -16,7 +16,7 @@ export interface AppState {
 	isDestinationNetwork: () => boolean;
 }
 
-const Networks = {
+export const Networks = {
 	BERGEN: NORGES_BANK_CHAIN.id,
 	ARBITRUM_GOERLI: ARBITRUM_GOERLI.id,
 	LOCAL_HARDHAT: LOCAL_HARDHAT.id,

@@ -15,6 +15,7 @@
     "docker:postgres": "docker run --name payvc-demo-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres"
   },
   "dependencies": {
+    "@brok/sdk": "^0.20.0",
     "@nextui-org/react": "^1.0.0-beta.10",
     "@prisma/client": "4.7.1",
     "@types/node": "18.11.10",
