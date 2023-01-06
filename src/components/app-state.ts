@@ -61,7 +61,7 @@ export const useAppState = create<AppState>()(
 			networkContractAddresses: CONTRACT_ADDRESSES,
 			cbTokenAddress: CONTRACT_ADDRESSES[DEFAULT_NETWORK].BRIDGE_DESTINATION_ADDRESS,
 			isGasless: () => {
-				return get().currentNetwork === SOURCE_CHAIN;
+				return get().currentNetwork === Networks.BERGEN;
 			},
 			isSourceNetwork: () => {
 				return get().currentNetwork === SOURCE_CHAIN;
