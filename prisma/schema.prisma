@@ -54,3 +54,26 @@ model Transaction {
   status           Status
   message          String?
 }
+
+model SharesForSale {
+  id               Int             @id @default(autoincrement())
+  soldByAddress    String
+  companyName      String
+  orgNumber        String
+  price            Decimal
+  lastPrice        Decimal
+  numberOfShares   Int     
+}
+
+model ShareTransaction {
+  id               Int             @id @default(autoincrement())
+  soldByAddress    String
+  boughtByAddress  String
+  companyName      String
+  orgNumber        String
+  price            Decimal
+  totalPrice       Decimal
+  numberOfShares   Int
+  taxPayed         Decimal
+  createdAt        DateTime @default(now())
+}

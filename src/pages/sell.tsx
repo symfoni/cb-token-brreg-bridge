@@ -2,7 +2,7 @@ import { ReactElement, useEffect, useState } from "react";
 import { useAccount, useNetwork, WagmiConfig } from "wagmi";
 import { Layout } from "../components/Layout";
 import { client } from "../components/web-wallet/wagmi-client";
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { Button, Card, Col, Container, Row, Spacer, Spinner, Text } from "@nextui-org/react";
 import { AccountBalance } from "../components/AccountBalance";
 import { useAppState } from "../components/app-state";
@@ -24,6 +24,38 @@ const Page = () => {
 
 	// TODO - Fetch my captables
 
+	const createSellOrder = async () => {
+
+			try {
+				// setIsWriting(true);
+				// const res = await writeAsync();
+				// log("waiting");
+				// await res.wait();
+				// setIsWriting(false);
+				// toast("Buy amount transfered!", { type: "success" });
+				// TODO - Call backend to validate and transfer shares and buy amount.
+				const res2 = await fetch("/api/sell-shares", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						soldByAddress: "gsgdsgsfgsdfdsf",
+						companyName: "The Great Company",
+						orgNumber: "12345678",
+						price: 100,
+						lastPrice: 70,
+						numberOfShares: 20
+					}),
+				});
+				const json = await res2.json();
+				console.log("json", json);
+			} catch (error) {
+				log(error);
+				toast("Could not create sales order!", { type: "error" });
+			}
+	};
+
 	return (
 		<Container gap={1}>
 			<Card>
@@ -32,6 +64,8 @@ const Page = () => {
 			</Card>
 
 			<Spacer></Spacer>
+
+			<Button onClick={() => createSellOrder()}>Sell shares</Button>
 
 			<Card>
 				<Card.Header>Balances</Card.Header>
