@@ -1,0 +1,11 @@
+{
+  "HTTP request" : {
+    "transactionID": "String",
+    "buyerID": "String",
+    "amountOfStocsToBuy": "Int"
+  },
+
+  "HTTP response" : {
+    "200 ok": ""
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "HTTP request" : {
+    "GET": ""
+  },
+
+  "HTTP response" : {
+    "captableAddress": "String",
+    "soldByAddress": "String",
+    "companyName": "String",
+    "orgNumber": "String",
+    "price": "Desimal",
+    "numberOfShares": "Int",
+    "createdAt": "Date"
+  }
+}

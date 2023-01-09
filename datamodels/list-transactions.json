@@ -1,0 +1,23 @@
+{
+  "HTTP request" : {
+    "shareholderId": "String"
+  },
+
+  "HTTP response" : {
+    [
+      {
+        "captableAddress"  "String"
+        "soldByAddress"    "String"
+        "boughtByAddress"  "String"
+        "companyName"      "String"
+        "orgNumber"        "String"
+        "price"            "Decimal"
+        "totalPrice"       "Decimal"
+        totalProfit      Decimal
+        numberOfShares   Int
+        taxPayed         Decimal
+        createdAt        DateTime @default(now())
+      }
+    ],
+  }
+}

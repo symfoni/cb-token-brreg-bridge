@@ -1,0 +1,13 @@
+{
+  "HTTP request" : {
+    "shareholderId": "String"
+  },
+
+  "HTTP response" : {
+    "captableAddress": "String",
+    "companyName": "String",
+    "orgNumber": "String",
+    "numberOfShares": "Int",
+    "persentOfTotalShares": "Decimal 1.90"
+  }
+}

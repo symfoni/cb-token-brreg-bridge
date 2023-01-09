@@ -1,0 +1,12 @@
+{
+  "HTTP request" : {
+    "captableAddress": "String",
+    "soldByAddress": "String",
+    "price": "Int",
+    "numberOfShares": "Int"
+  },
+
+  "HTTP response" : {
+    "200 ok": ""
+  }
+}
