@@ -1,0 +1,51 @@
+.hackaton-navbar {
+  justify-content: start !important;
+}
+
+.header-left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 400px;
+    align-self: center;
+  }
+
+  .header-left a {
+    color: #00a995;
+    text-decoration: none;
+    width: 130px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 18px;
+
+  }
+  .header-left a:hover {
+      color: #00a995;
+      text-decoration: underline;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    align-self: center;
+    width: 200px;
+  }
+  .header-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .portfolio-address {
+    color: #005d4a;
+    width: 100%;
+    text-align: end;
+    padding-right: 40px;
+    font-size: 1.2rem;
+    font-weight: 400;
+  }
+
+  .hackaton-header {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
