@@ -12,6 +12,11 @@ import { TransferEventList } from "../components/TransferEventList";
 import "react-toastify/dist/ReactToastify.css";
 import { WithdrawTokens } from "../components/WithdrawTokens";
 import { ethers } from "ethers";
+import dynamic from 'next/dynamic'
+// const SDK = dynamic(() => import("@brok/sdk").then((module) => module.SDK))
+
+// import { SDK } from "@brok/sdk";
+
 
 const log = debug("bridge:sell");
 
@@ -23,6 +28,11 @@ const Page = () => {
 	const [capTables, setCapTables] = useState([]);
 
 	// TODO - Fetch my captables
+
+	useEffect(() => {
+		fetchPortfolio();
+	  }, []);
+
 
 	const createSellOrder = async () => {
 
@@ -40,7 +50,7 @@ const Page = () => {
 						"Content-Type": "application/json",
 					},
 					body: JSON.stringify({
-						soldByAddress: "gsgdsgsfgsdfdsf",
+						soldByAddress: "0x39d1786d6c23955830146b3658c6f028507c0fbe",
 						companyName: "The Great Company",
 						orgNumber: "12345678",
 						price: 100,
@@ -55,6 +65,24 @@ const Page = () => {
 				toast("Could not create sales order!", { type: "error" });
 			}
 	};
+
+	const fetchPortfolio = async () => {
+
+		try {
+
+			const res2 = await fetch("/api/list-portfolio/0x39d1786d6c23955830146b3658c6f028507c0fbe", { //"
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+			const json = await res2.json();
+			console.log(json);
+		} catch (error) {
+			log(error);
+			toast("Could not create sales order!", { type: "error" });
+		}
+
+};
 
 	return (
 		<Container gap={1}>
