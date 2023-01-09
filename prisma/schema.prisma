@@ -57,22 +57,26 @@ model Transaction {
 
 model SharesForSale {
   id               Int             @id @default(autoincrement())
+  captableAddress  String
   soldByAddress    String
   companyName      String
   orgNumber        String
   price            Decimal
   lastPrice        Decimal
-  numberOfShares   Int     
+  numberOfShares   Int    
+  createdAt        DateTime @default(now()) 
 }
 
 model ShareTransaction {
   id               Int             @id @default(autoincrement())
+  captableAddress  String
   soldByAddress    String
   boughtByAddress  String
   companyName      String
   orgNumber        String
   price            Decimal
   totalPrice       Decimal
+  totalProfit      Decimal
   numberOfShares   Int
   taxPayed         Decimal
   createdAt        DateTime @default(now())
