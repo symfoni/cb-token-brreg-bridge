@@ -58,5 +58,5 @@ function percentOfTotalShares(capTable: CapTableGraphQL, shareholderID: String |
 	let shares = 0
 	const totaltShares = +capTable.totalSupply/1000000000000000000;
 	capTable.tokenHolders.filter((s) => s.address === shareholderID).map(s => shares = +s.balances[0].amount/1000000000000000000)
-	return +(shares/totaltShares).toFixed(2)*100
+	return +((shares/totaltShares)*100).toFixed(2)
 }
