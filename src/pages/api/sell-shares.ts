@@ -1,32 +1,39 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import { BRIDGE_CHAIN_CONFIG } from "../../constants";
-import { createSharesForSale, SharesForSaleDto } from "../../server/sharesForSale";
-
-type Data = {
-	name: string;
-};
+import { createSharesForSale, SellSharesRequest, SharesForSaleDto } from "../../server/sharesForSale";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-	if (req.method === "POST") {
-		// DO thing here
-		console.log("req, body", req.body);
-
-		try {
-			const shareDto : SharesForSaleDto = req.body
-
-			const shares = await createSharesForSale(shareDto);
-
-			return res.status(200).json({ shares });
-		} catch (error) {
-			console.log("===== ERROR api/bot...");
-			console.error(error);
-			return res.status(500).json({error});
+	try {
+		if (req.method !== "POST") {
+			return res.status(400).json({ error: "unexpected type of request, try using HTTP POST" });
 		}
 		
+		if (!req.body.captableAddress) {
+			return res.status(400).json({ error: "missing captableAddress in POST request" });
+		}
+		if (!req.body.soldByAddress) {
+			return res.status(400).json({ error: "missing soldByAddress in POST request" });
+		}
+		if (!req.body.price) {
+			return res.status(400).json({ error: "missing price in POST request" });
+		}
+		if (!req.body.numberOfShares) {
+			return res.status(400).json({ error: "missing captableAddress in POST request" });
+		}
 
-		
+		const sharesToBeSold : SellSharesRequest = req.body
+
+		const result = await createSharesForSale(sharesToBeSold);
+
+		if (result) {
+			return res.status(200).json("ok");
+		} else {
+			return res.status(400).json("error")
+		}
+
+	} catch (error) {
+		console.log("===== ERROR api/bot...");
+		console.error(error);
+		return res.status(500).json({error});
 	}
-
-	
 }
