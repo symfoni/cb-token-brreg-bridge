@@ -1,12 +1,6 @@
 import { getCompanyInformation, isSharesOwnedByTheWallet } from "./brokSdk";
 import prisma from "./prisma";
 
-export async function getSharesForSale() {
-	let shares = await prisma.sharesForSale.findMany();
-	
-	return shares;
-}
-
 export type SellSharesRequest = {
 	captableAddress: string,
 	soldByAddress: string,
@@ -14,14 +8,9 @@ export type SellSharesRequest = {
 	numberOfShares: number
 };
 
-export type SharesForSaleDto = {
-	soldByAddress: string;
-	companyName: string;
-	orgNumber: string;
-	price: number;
-	lastPrice: number
-	numberOfShares: number
-  }
+export async function getSharesForSale() {
+	return await prisma.sharesForSale.findMany();
+}
 
 export async function createSharesForSale(sellShares: SellSharesRequest) {
 	const companyInfo = await getCompanyInformation(sellShares.captableAddress);

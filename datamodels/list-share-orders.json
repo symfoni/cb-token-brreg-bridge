@@ -4,7 +4,7 @@
   },
 
   "HTTP response" : {
-    "orders": [
+    "shares": [
       {
         "captableAddress": "String",
         "soldByAddress": "String",
