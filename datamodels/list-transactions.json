@@ -13,10 +13,10 @@
         "orgNumber"        "String"
         "price"            "Decimal"
         "totalPrice"       "Decimal"
-        totalProfit      Decimal
-        numberOfShares   Int
-        taxPayed         Decimal
-        createdAt        DateTime @default(now())
+        "totalProfit"      "Decimal"
+        "numberOfShares"   "Int"
+        "taxPayed"         "Decimal"
+        "createdAt"        "DateTime @default(now())"
       }
     ],
   }
