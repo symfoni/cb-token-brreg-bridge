@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			(shares) => {
 				return shares.tokenHolders.some(
 					(tokenHolder) => {
-						return tokenHolder.address === walletAddress.toString()
+						return tokenHolder.address === walletAddress?.toString()
 					}
 				)
 		})
@@ -35,8 +35,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			captableAddress: obj.id,
 			companyName: obj.name,
 			orgNumber: obj.orgnr,
-			numberOfShares: numberOfShares(obj.tokenHolders, walletAddress),
-			persentOfTotalShares: percentOfTotalShares(obj, walletAddress)
+			numberOfShares: numberOfShares(obj.tokenHolders, walletAddress?.toString()),
+			persentOfTotalShares: percentOfTotalShares(obj, walletAddress?.toString())
 		}))
 
 		return res.status(200).json(data);
@@ -48,13 +48,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 	}
 }
 
-function numberOfShares(tokenHolders: TokenHolderGraphQL[], shareholderID: String | String[]) : Number {
+function numberOfShares(tokenHolders: TokenHolderGraphQL[], shareholderID: string) : number {
 	let shares = 0
 	tokenHolders.filter((s) => s.address === shareholderID).map(s => shares = +s.balances[0].amount/1000000000000000000)
 	return shares
 }
 
-function percentOfTotalShares(capTable: CapTableGraphQL, shareholderID: String | String[]) : Number {
+function percentOfTotalShares(capTable: CapTableGraphQL, shareholderID: string) : number {
 	let shares = 0
 	const totaltShares = +capTable.totalSupply/1000000000000000000;
 	capTable.tokenHolders.filter((s) => s.address === shareholderID).map(s => shares = +s.balances[0].amount/1000000000000000000)
