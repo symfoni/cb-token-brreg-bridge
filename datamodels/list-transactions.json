@@ -1,23 +1,22 @@
 {
-  "HTTP request" : {
+  "HTTP request": {
     "shareholderId": "String"
   },
-
-  "HTTP response" : {
-    [
+  "HTTP response": {
+    "transactions": [
       {
-        "captableAddress"  "String"
-        "soldByAddress"    "String"
-        "boughtByAddress"  "String"
-        "companyName"      "String"
-        "orgNumber"        "String"
-        "price"            "Decimal"
-        "totalPrice"       "Decimal"
-        "totalProfit"      "Decimal"
-        "numberOfShares"   "Int"
-        "taxPayed"         "Decimal"
-        "createdAt"        "DateTime @default(now())"
+        "captableAddress": "String",
+        "soldByAddress": "String",
+        "boughtByAddress": "String",
+        "companyName": "String",
+        "orgNumber": "String",
+        "price": "Number",
+        "totalPrice": "Number",
+        "totalProfit": "Number",
+        "numberOfShares": "Number",
+        "taxPayed": "Number",
+        "createdAt": "DateTime @default(now())"
       }
-    ],
+    ]
   }
 }
