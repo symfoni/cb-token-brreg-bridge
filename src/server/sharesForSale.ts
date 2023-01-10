@@ -24,6 +24,7 @@ export async function createSharesForSale(sellShares: SellSharesRequest) {
 				orgNumber: companyInfo.orgnr,
 				price: sellShares.price,
 				lastPrice: 1,
+				sold: false,
 				numberOfShares: sellShares.numberOfShares
 			},
 		})
