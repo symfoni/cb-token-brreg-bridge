@@ -1,5 +1,8 @@
 import { SharesForSale } from "@prisma/client";
+import { ethers } from "ethers";
 import { initSDK } from "../components/brok-sdk";
+import { GET_PROVIDER, BRIDGE_CHAIN_CONFIG, CONTRACT_ADDRESSES } from "../constants";
+import { CBToken__factory } from "../typechain-types";
 import prisma from "./prisma";
 
 export type BuyOrder = {
@@ -11,27 +14,36 @@ export type BuyOrder = {
 export async function buyShare(buyOrder: BuyOrder) {
   // get sell order from db
   const sharesForSale = await getSellOrderFromDb(buyOrder.transactionID);
-
+  
   // check if sellOrder exsist
   if (!sharesForSale) {
     console.log("Sell order with id: %d does not exist", buyOrder.transactionID);
     return false
   }
-
+  
   // check if sell order is still active
   if (sharesForSale?.sold) {
     console.log("Sell order with id: %d is no longer active", sharesForSale.id);
     return false;
   }
+  
+  const totalPrice = calculateTotalPrice(sharesForSale, buyOrder);
 
   // check if buyer have sufficient funds
-  // TODO
+  if (! (await checkNokBalance(totalPrice))) {
+    console.log("insufficient funds to buy shares")
+    return false
+  }
 
   // transfer money
-  // TODO
+  if (! (await moveMoney(buyOrder.buyerID, totalPrice))) {
+    console.log("could not transer money to wallet %d", buyOrder.buyerID)
+    return false
+  }
+
 
   // transfer shares
-  if (! await transferSharesFromSellerToBuyer(sharesForSale, buyOrder)) {
+  if (! (await transferSharesFromSellerToBuyer(sharesForSale, buyOrder))) {
     return false
   }
 
@@ -92,7 +104,7 @@ async function createTransactionRecord(sharesForSale: SharesForSale, buyOrder: B
       boughtByAddress: buyOrder.buyerID,
       companyName: sharesForSale.companyName,
       orgNumber: sharesForSale.orgNumber,
-      price: sharesForSale.price,
+      price: sharesForSale.price.toNumber(),
       totalPrice: calculateTotalPrice(sharesForSale, buyOrder),
       totalProfit: calculateProfit(sharesForSale),
       numberOfShares: sharesForSale.numberOfShares,
@@ -112,4 +124,47 @@ function calculateTotalPrice(sharesForSale: SharesForSale, buyOrder: BuyOrder) :
 
 function calculateProfit(sharesForSale: SharesForSale) : string {
   return (+sharesForSale.price - +sharesForSale.lastPrice).toString()
+}
+
+async function checkNokBalance(amount: string) {
+  const { destinationChain } = BRIDGE_CHAIN_CONFIG();
+  const walletDestination = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
+    GET_PROVIDER( destinationChain, { withNetwork: true }),
+  );
+
+  const destinationToken = CBToken__factory.connect(
+    CONTRACT_ADDRESSES[destinationChain.id].CB_TOKEN_BRIDGE_ADDRESS,
+    walletDestination,
+  );
+
+  const balance = await destinationToken.balanceOf(walletDestination.address)
+  const abountBigNumber = ethers.utils.parseUnits(amount, 4)
+
+  if (balance.gte(abountBigNumber)) {
+    return true
+  } else {
+    return false
+  }
+}
+
+async function moveMoney(to: string, amount: string) {
+  try {
+    const { destinationChain } = BRIDGE_CHAIN_CONFIG();
+    const walletDestination = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
+      GET_PROVIDER( destinationChain, { withNetwork: true }),
+    );
+  
+    const destinationToken = CBToken__factory.connect(
+      CONTRACT_ADDRESSES[destinationChain.id].CB_TOKEN_BRIDGE_ADDRESS,
+      walletDestination,
+    );
+  
+    const tx = await destinationToken.transfer(to, ethers.utils.parseUnits(amount, 4))
+  
+    await tx.wait()
+    return true
+  } catch (error) {
+    console.error(error)
+    return false
+  }
 }
