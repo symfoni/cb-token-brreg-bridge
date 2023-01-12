@@ -2,9 +2,9 @@ import { Button, Col, Container, Dropdown, Grid, Navbar, Row, Text } from "@next
 import Link from "next/link";
 import React, { useCallback, useEffect } from "react";
 import { useConnect, useDisconnect, useNetwork, useSwitchNetwork } from "wagmi";
-import { WebWalletConnectButton } from "./web-wallet/WebWalletConnectButton";
+import { WebWalletConnectButton } from "../web-wallet/WebWalletConnectButton";
 import debug from "debug";
-import { useAppState } from "./app-state";
+import { useAppState } from "../app-state";
 const log = debug("bridge:NavBar");
 
 interface Props {}
@@ -35,7 +35,7 @@ export const HackatonNavBar: React.FC<Props> = ({ ...props }) => {
           			<Link href="/portfolio">Min Portefølje</Link>
 					</Col>
 					<Col>
-					<Link href="/market">
+					<Link href="/market" style={{textDecoration:"none"}}>
 					<Text h1 className="header-center">Norges bank DSP-Hackaton</Text>
 				</Link></Col>
 					<Col className="header-right">

@@ -15,8 +15,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		if (!req.body.buyerID) {
 			return res.status(400).json({ error: "missing buyerID in POST request" });
 		}
-		if (!req.body.amountOfStocsToBuy) {
-			return res.status(400).json({ error: "missing amountOfStocsToBuy in POST request" });
+		if (!req.body.numberOfStocksToBuy) {
+			return res.status(400).json({ error: "missing numberOfStocksToBuy in POST request" });
 		}
 
 		const buyOrder : BuyOrder = req.body

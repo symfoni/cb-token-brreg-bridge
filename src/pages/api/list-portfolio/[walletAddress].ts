@@ -9,7 +9,7 @@ interface Portfolio {
 	companyName: String
 	orgNumber: String
 	numberOfShares: Number
-	persentOfTotalShares: Number
+	percentOfTotalShares: Number
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			companyName: obj.name,
 			orgNumber: obj.orgnr,
 			numberOfShares: numberOfShares(obj.tokenHolders, walletAddress?.toString()),
-			persentOfTotalShares: percentOfTotalShares(obj, walletAddress?.toString())
+			percentOfTotalShares: percentOfTotalShares(obj, walletAddress?.toString())
 		}))
 
 		return res.status(200).json(data);

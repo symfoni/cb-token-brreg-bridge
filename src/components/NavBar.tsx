@@ -30,7 +30,7 @@ export const NavBar: React.FC<Props> = ({ ...props }) => {
 		<Navbar variant="static" maxWidth={"md"}>
 			<Navbar.Toggle showIn={"xs"} aria-label="toggle navigation" />
 			<Navbar.Brand>
-				<Link href="/">
+				<Link href="/" style={{textDecoration:"none"}}>
 					<Text h1>Token bridge</Text>
 				</Link>
 			</Navbar.Brand>

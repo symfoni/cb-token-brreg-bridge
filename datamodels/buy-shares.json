@@ -1,11 +1,11 @@
 {
-  "HTTP request" : {
-    "transactionID": "String",
+  "HTTP request": {
+    "transactionID": "Int",
     "buyerID": "String",
-    "amountOfStocsToBuy": "Int"
+    "numberOfStocksToBuy": "Int"
   },
 
-  "HTTP response" : {
+  "HTTP response": {
     "200 ok": ""
   }
 }

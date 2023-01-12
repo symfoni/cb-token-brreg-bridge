@@ -1,3 +1,5 @@
+@use "src/scss/variables";
+
 .hackaton-navbar {
   justify-content: start !important;
 }
@@ -48,4 +50,21 @@
   .hackaton-header {
     font-size: 1.5rem;
     font-weight: 600;
+  }
+
+  .offcanvas {
+    border-radius: 20px 0 0 20px;
+  }
+  .company-name-sidebar {
+    color: #005d4a;
+  }
+
+  .action-button {
+    background-color: variables.$button-color !important;
+    border: 2px solid variables.$primary-color-900 !important;
+    padding: 5px 20px !important;
+  
+    &:hover {
+      background-color: variables.$button-color-active !important;
+    }
   }

@@ -3,7 +3,7 @@ import Head from "next/head";
 import { ReactNode } from "react";
 import { WagmiConfig } from "wagmi";
 import { HackatonNavBar } from "./HackatonNavBar";
-import { client } from "./web-wallet/wagmi-client";
+import { client } from "../web-wallet/wagmi-client";
 
 type DefaultLayoutProps = { children: ReactNode };
 

@@ -3,7 +3,7 @@ import { useAccount, useNetwork, useSwitchNetwork, WagmiConfig } from "wagmi";
 import { Layout } from "../components/Layout";
 import { client } from "../components/web-wallet/wagmi-client";
 import { toast, ToastContainer } from "react-toastify";
-import { Button, Card, Col, Container, Row, Spacer, Spinner, Table, Text } from "@nextui-org/react";
+import {Card, Col, Container, Row, Spacer, Spinner, Table, Text } from "@nextui-org/react";
 import { AccountBalance } from "../components/AccountBalance";
 import { useAppState, Networks } from "../components/app-state";
 import { TransferToken } from "../components/TransferToken";
@@ -11,14 +11,16 @@ import debug from "debug";
 import { TransferEventList } from "../components/TransferEventList";
 import "react-toastify/dist/ReactToastify.css";
 import { WithdrawTokens } from "../components/WithdrawTokens";
-import { HackatonLayout } from "../components/HackatonLayout";
+import { HackatonLayout } from "../components/hackaton/HackatonLayout";
+import SellSharesSidebar from "../components/hackaton/SellSharesSidebar";
+import { Button } from "react-bootstrap";
 
 
 const log = debug("bridge:portfolio");
 
-const taxERC20Address = "0xEEE1948b96c59A40b456FDDc3F079e3DA5ca96Ff";
+const taxERC20Address = "0x1BD2AfE3d185C4Aa0a667759A5652Ad41405A1B7";
 
-interface PortfolioSharesDto {
+export interface PortfolioSharesDto {
 	captableAddress: string;
 	companyName: string;
 	orgNumber: string;
@@ -53,6 +55,8 @@ const Page = () => {
   const [transactions, setTransactions] = useState<
   TransactionDto[]
   >([]);
+  const [openSidebar, setOpenSidebar] = useState<boolean>(false);
+  const [selectedStock, setSelectedStock] = useState<PortfolioSharesDto>();
 
   const switchToGoerliNetwork = useCallback(
 	async () => {
@@ -64,58 +68,26 @@ const Page = () => {
 	// TODO - Fetch my captables
 
 	useEffect(() => {
+		if (currentNetwork !== Networks.ARBITRUM_GOERLI) {
+			switchToGoerliNetwork();
+		}
 		fetchPortfolio();
-		fetchPortfolio();
+		fetchTransactions();
 	  }, []);
-
-
-	const createSellOrder = async () => {
-
-			try {
-				// setIsWriting(true);
-				// const res = await writeAsync();
-				// log("waiting");
-				// await res.wait();
-				// setIsWriting(false);
-				// toast("Buy amount transfered!", { type: "success" });
-				// TODO - Call backend to validate and transfer shares and buy amount.
-				const res2 = await fetch("/api/sell-shares", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						soldByAddress: "0x39d1786d6c23955830146b3658c6f028507c0fbe",
-						companyName: "The Great Company",
-						orgNumber: "12345678",
-						price: 100,
-						lastPrice: 70,
-						numberOfShares: 20
-					}),
-				});
-				const json = await res2.json();
-				console.log("json", json);
-			} catch (error) {
-				log(error);
-				toast("Could not create sales order!", { type: "error" });
-			}
-	};
 
 	const fetchPortfolio = async () => {
 
 		try {
 
-			const res2 = await fetch("/api/list-portfolio/0x39d1786d6c23955830146b3658c6f028507c0fbe", { //"
+			const res2 = await fetch("/api/list-portfolio/0xb415f84064f46732e179aa0e43059533f487243c", { //"
 				headers: {
 					"Content-Type": "application/json",
 				},
 			});
 			const json = await res2.json();
-			console.log(json);
 			 setStocksInPortfolio(json);
 		} catch (error) {
 			log(error);
-			toast("Could not create sales order!", { type: "error" });
 		}
 
 };
@@ -124,7 +96,7 @@ const fetchTransactions = async () => {
 
 	try {
 
-		const res2 = await fetch("/api/list-transactions/0x39d1786d6c23955830146b3658c6f028507c0fbe", { //"
+		const res2 = await fetch("/api/list-transactions/0xb415f84064f46732e179aa0e43059533f487243c", { //"
 			headers: {
 				"Content-Type": "application/json",
 			},
@@ -133,10 +105,14 @@ const fetchTransactions = async () => {
 		 setStocksInPortfolio(json);
 	} catch (error) {
 		log(error);
-		toast("Could not create sales order!", { type: "error" });
 	}
 
 };
+
+function openSalesModal(stock: PortfolioSharesDto) {
+    setSelectedStock(stock);
+    setOpenSidebar(true);
+  }
 
 
 const renderPortfolioTableRows = useCallback(
@@ -151,8 +127,8 @@ const renderPortfolioTableRows = useCallback(
 			  <Table.Cell>
               <Button
                 className="action-button"
-                // variant="primary"
-                //  onClick={() => openSalesModal(companyShares)}
+                variant="primary"
+                onClick={() => openSalesModal(companyShares)}
               >
                 Selg aksjer
               </Button>
@@ -181,16 +157,16 @@ const renderPortfolioTableRows = useCallback(
     [stocksInPortfolio]
   );
 
-  if (currentNetwork !== Networks.ARBITRUM_GOERLI) {
-	return <Row><Col style={{maxWidth:800}}>Man kan bare kjøpe aksjer på Arbitrum Goerli kjeden, venligst bytt kjede i velgeren på toppen av siden.
-	</Col> 
-	<Col style={{width:200}}><Button
-	className="action-button"
-	 onClick={() => switchToGoerliNetwork()}
-  >
-	Bytt til Goerli-kjeden
-  </Button></Col></Row>;
-}
+//   if (currentNetwork !== Networks.ARBITRUM_GOERLI) {
+// 	return <Row><Col style={{maxWidth:800}}>Man kan bare kjøpe aksjer på Arbitrum Goerli kjeden, venligst bytt kjede i velgeren på toppen av siden.
+// 	</Col> 
+// 	<Col style={{width:200}}><Button
+// 	className="action-button"
+// 	 onClick={() => switchToGoerliNetwork()}
+//   >
+// 	Bytt til Goerli-kjeden
+//   </Button></Col></Row>;
+// }
 
 	return (
 		<Container gap={1}>
@@ -198,7 +174,7 @@ const renderPortfolioTableRows = useCallback(
 			<Card>
 				<Card.Header className="hackaton-header">Din portfølje:</Card.Header>
 				<Card.Body>
-					<p className="portfolio-address">Ethereum adresse: {address}</p>
+					 <p className="portfolio-address">Ethereum adresse: "0xb415f84064f46732e179aa0e43059533f487243c"</p> {/*{address} */}
 				<Table>
 					<Table.Header>
         <Table.Column>Selskap</Table.Column>
@@ -221,7 +197,7 @@ const renderPortfolioTableRows = useCallback(
 				<Card.Header className="hackaton-header">Valutta på Brøk-kjeden:</Card.Header>
 				<Card.Body>
 					<Row>
-						<AccountBalance accountAddress={address} tokenAddress={networkContractAddresses[currentNetwork].CB_TOKEN_BRIDGE_ADDRESS}/>
+						<AccountBalance accountAddress={"0xb415f84064f46732e179aa0e43059533f487243c"} tokenAddress={networkContractAddresses[currentNetwork].CB_TOKEN_BRIDGE_ADDRESS}/>{/*{address} */}
 					</Row>
 				</Card.Body>
 			</Card>
@@ -232,7 +208,7 @@ const renderPortfolioTableRows = useCallback(
 				<Card.Header className="hackaton-header">Valutta på Brøk-adressen til skatteetaten:</Card.Header>
 				<Card.Body>
 					<Row>
-						<AccountBalance accountAddress={taxERC20Address} tokenAddress={networkContractAddresses[currentNetwork].CB_TOKEN_BRIDGE_ADDRESS}/>
+						<AccountBalance accountAddress={taxERC20Address} tokenAddress={networkContractAddresses[currentNetwork].CB_TOKEN_BRIDGE_ADDRESS}/>{/*{address} */}
 					</Row>
 				</Card.Body>
 			</Card>
@@ -257,6 +233,14 @@ const renderPortfolioTableRows = useCallback(
 	  </Table>
 	  </Card.Body>
 			</Card>
+			<SellSharesSidebar
+        open={openSidebar}
+		eth20Address={"0xb415f84064f46732e179aa0e43059533f487243c"}
+        selectedStock={selectedStock}
+        handleClose={() => {
+          setOpenSidebar(false);
+        }}
+      />
 		</Container>
 	);
 };

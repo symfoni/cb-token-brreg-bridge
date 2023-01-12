@@ -8,8 +8,10 @@ import prisma from "./prisma";
 export type BuyOrder = {
   transactionID: number,
   buyerID: string,
-  amountOfStocsToBuy: string
+  numberOfStocksToBuy: string
 }
+
+const taxERC20Address = "0x1BD2AfE3d185C4Aa0a667759A5652Ad41405A1B7";
 
 export async function buyShare(buyOrder: BuyOrder) {
   // get sell order from db
@@ -28,6 +30,8 @@ export async function buyShare(buyOrder: BuyOrder) {
   }
   
   const totalPrice = calculateTotalPrice(sharesForSale, buyOrder);
+  const taxToBePaid  = calculateTax(sharesForSale);
+  const profit = calculateProfit(sharesForSale)
 
   // check if buyer have sufficient funds
   if (! (await checkNokBalance(totalPrice))) {
@@ -35,12 +39,17 @@ export async function buyShare(buyOrder: BuyOrder) {
     return false
   }
 
-  // transfer money
-  if (! (await moveMoney(buyOrder.buyerID, totalPrice))) {
+   // transfer money from buyer to tax office
+   if (! (await moveMoney(taxERC20Address, taxToBePaid))) {
     console.log("could not transer money to wallet %d", buyOrder.buyerID)
     return false
   }
 
+  // transfer money from buyer to seller
+  if (! (await moveMoney(buyOrder.buyerID, profit))) {
+    console.log("could not transer money to wallet %d", buyOrder.buyerID)
+    return false
+  }
 
   // transfer shares
   if (! (await transferSharesFromSellerToBuyer(sharesForSale, buyOrder))) {
@@ -70,7 +79,7 @@ async function transferSharesFromSellerToBuyer(sharesForSale: SharesForSale, buy
     {
       from: sharesForSale.soldByAddress.toString(),
       to: buyOrder.buyerID.toString(),
-      amount: buyOrder.amountOfStocsToBuy.toString(),
+      amount: buyOrder.numberOfStocksToBuy.toString(),
       partition: 'ordinære'
     },
   ]);
@@ -119,7 +128,7 @@ function calculateTax(sharesForSale: SharesForSale) : string {
 }
 
 function calculateTotalPrice(sharesForSale: SharesForSale, buyOrder: BuyOrder) : string {
-  return (+sharesForSale.price * +buyOrder.amountOfStocsToBuy).toString()
+  return (+sharesForSale.price * +buyOrder.numberOfStocksToBuy).toString()
 }
 
 function calculateProfit(sharesForSale: SharesForSale) : string {
