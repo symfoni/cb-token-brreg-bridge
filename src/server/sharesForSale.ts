@@ -9,7 +9,11 @@ export type SellSharesRequest = {
 };
 
 export async function getSharesForSale() {
-	return await prisma.sharesForSale.findMany();
+	return await prisma.sharesForSale.findMany({
+		where: {
+			sold: false
+		}
+	});
 }
 
 export async function createSharesForSale(sellShares: SellSharesRequest) {
