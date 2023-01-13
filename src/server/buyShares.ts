@@ -1,5 +1,6 @@
 import { SharesForSale } from "@prisma/client";
 import { ethers } from "ethers";
+import { Chain } from "wagmi";
 import { initSDK } from "../components/brok-sdk";
 import { GET_PROVIDER, BRIDGE_CHAIN_CONFIG, CONTRACT_ADDRESSES } from "../constants";
 import { CBToken__factory } from "../typechain-types";
@@ -29,13 +30,15 @@ export async function buyShare(buyOrder: BuyOrder) {
     return false;
   }
   
-  const totalPrice = calculateTotalPrice(sharesForSale, buyOrder);
+  const totalPrice = calculateTotalPrice(sharesForSale, buyOrder)
+  const tax = calculateTax(sharesForSale)
+  const totalPriceTaxDeducted = (+totalPrice - +tax).toString()
+  const skatteetatenAddress = "65bb057c4f0785896bef015da401498f33603747"
   const taxToBePaid  = calculateTax(sharesForSale);
   const profit = calculateProfit(sharesForSale)
 
   // check if buyer have sufficient funds
   if (! (await checkNokBalance(totalPrice))) {
-    console.log("insufficient funds to buy shares")
     return false
   }
 
@@ -50,6 +53,18 @@ export async function buyShare(buyOrder: BuyOrder) {
     console.log("could not transer money to wallet %d", buyOrder.buyerID)
     return false
   }
+  // // transfer money
+  // if (! (await moveMoney(buyOrder.buyerID, totalPriceTaxDeducted))) {
+  //   console.log("could not transer money to wallet %d", buyOrder.buyerID)
+  //   return false
+  // }
+
+  // // transfer money to skatteetaten
+  // if (! (await moveMoney(skatteetatenAddress, tax, NORGES_BANK_CHAIN))) {
+  //   console.log("could not transer money to wallet %d", buyOrder.buyerID)
+  //   return false
+  // }
+
 
   // transfer shares
   if (! (await transferSharesFromSellerToBuyer(sharesForSale, buyOrder))) {
@@ -152,6 +167,7 @@ async function checkNokBalance(amount: string) {
   if (balance.gte(abountBigNumber)) {
     return true
   } else {
+    console.log("insufficient funds in wallet %s to buy shares for %d", walletDestination.address, amount)
     return false
   }
 }
@@ -159,6 +175,7 @@ async function checkNokBalance(amount: string) {
 async function moveMoney(to: string, amount: string) {
   try {
     const { destinationChain } = BRIDGE_CHAIN_CONFIG();
+
     const walletDestination = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
       GET_PROVIDER( destinationChain, { withNetwork: true }),
     );
