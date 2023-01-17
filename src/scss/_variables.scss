@@ -11,24 +11,21 @@ $secondary-color-300: #f66da4;
 $secondary-color-100: #f9bfd8;
 
 $dark-color: #0f292f;
-$light-color: white;
+$light-color: #FFF;
 
 //Header
 $header-link-color: $primary-color-500;
 $header-link-hover-color: $primary-color-500;
-$header-background-color: white;
+$header-background-color: #FFF;
 $header-height: 4rem;
 
 //Footer
-$footer-link-color: $primary-color-300;
-$footer-link-hover-color: $primary-color-500;
-$footer-background-color: white;
+$footer-link-color: #141414;
+$footer-link-hover-color: #141414;
+$footer-background-color: #FFF;
 $footer-height: 4rem;
 
 //button
-$button-color: $primary-color-500;
-$button-color-active: $primary-color-300;
+$button-color: #6913be;
+$button-color-active: #4a0d87;
 
-//General
-$text-color: $light-color;
-$background-color: $dark-color;

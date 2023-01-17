@@ -10,6 +10,7 @@ interface Portfolio {
 	orgNumber: String
 	numberOfShares: Number
 	percentOfTotalShares: Number
+	lastPricePerShare: Number
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -22,11 +23,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 	try {
 		const allCapTables = await sdk.getCapTableList(0,999);
+		console.log(walletAddress.toString().toLowerCase());
 		const portfolioAllData = allCapTables.filter( 
 			(shares) => {
 				return shares.tokenHolders.some(
 					(tokenHolder) => {
-						return tokenHolder.address === walletAddress?.toString()
+						return tokenHolder.address === walletAddress?.toString().toLowerCase()
 					}
 				)
 		})
@@ -35,9 +37,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			captableAddress: obj.id,
 			companyName: obj.name,
 			orgNumber: obj.orgnr,
-			numberOfShares: numberOfShares(obj.tokenHolders, walletAddress?.toString()),
-			percentOfTotalShares: percentOfTotalShares(obj, walletAddress?.toString())
+			numberOfShares: numberOfShares(obj.tokenHolders, walletAddress?.toString().toLowerCase()),
+			percentOfTotalShares: percentOfTotalShares(obj, walletAddress?.toString().toLowerCase()),
+			lastPricePerShare: Math.round(Math.random()*300)
 		}))
+
+		data = data.filter((shares) => shares.numberOfShares > 0);
 
 		return res.status(200).json(data);
 

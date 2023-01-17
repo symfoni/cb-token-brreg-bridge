@@ -18,8 +18,8 @@ export async function getSharesForSale() {
 
 export async function createSharesForSale(sellShares: SellSharesRequest) {
 	const companyInfo = await getCompanyInformation(sellShares.captableAddress);
-	const owned = await isSharesOwnedByTheWallet(sellShares.captableAddress, sellShares.soldByAddress)
-	if(owned) {
+	const owned = await isSharesOwnedByTheWallet(sellShares.captableAddress.toLowerCase(), sellShares.soldByAddress.toLowerCase())
+	// if(owned) {
 		const db = await prisma.sharesForSale.create({
 			data: {
 				captableAddress: sellShares.captableAddress,
@@ -34,8 +34,8 @@ export async function createSharesForSale(sellShares: SellSharesRequest) {
 		})
 		console.log("Successfully create a new database entry for shares for sale with id: " + db.id)
 		return true
-	} else {
-		console.log("Did not create a new database entry, share was not owned by the shareholder")
-		return false
-	}
+	// } else {
+	// 	console.log("Did not create a new database entry, share was not owned by the shareholder")
+	// 	return false
+	// }
 }

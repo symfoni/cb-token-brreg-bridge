@@ -1,29 +1,39 @@
 @use "src/scss/variables";
 
+:root {
+  background-color: #ECECED !important;
+  min-height: 100vh !important
+}
+body {
+  background-color: #ECECED !important;
+  min-height: 100vh !important
+}
+
+.main-container {
+  max-width: 1680px;
+  align-self: center;
+  min-height: 100vh !important
+}
+
 .hackaton-navbar {
-  justify-content: start !important;
+  justify-content: flex-start !important;
+  width: 1680px;
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  height: 106px;
+  background-color: #ECECED;
+  box-shadow: none !important;
 }
 
 .header-left {
     display: flex;
+    padding-left: 43px;
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
+    flex-grow: 1;
     width: 400px;
     align-self: center;
-  }
-
-  .header-left a {
-    color: #00a995;
-    text-decoration: none;
-    width: 130px;
-    text-align: center;
-    font-weight: 600;
-    font-size: 18px;
-
-  }
-  .header-left a:hover {
-      color: #00a995;
-      text-decoration: underline;
   }
   .header-right {
     display: flex;
@@ -31,11 +41,6 @@
     justify-content: flex-end;
     align-self: center;
     width: 200px;
-  }
-  .header-center {
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .portfolio-address {
@@ -61,10 +66,223 @@
 
   .action-button {
     background-color: variables.$button-color !important;
-    border: 2px solid variables.$primary-color-900 !important;
+    border: variables.$button-color !important;
     padding: 5px 20px !important;
+    font-size: 14px;
+    border-radius: 40px;
   
     &:hover {
       background-color: variables.$button-color-active !important;
     }
   }
+
+  .action-button-secondary {
+    background-color: #ffffff;
+    border: 1px solid #6913BE !important;
+    padding: 5px 20px !important;
+    font-size: 14px;
+    border-radius: 40px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 7px 16px;
+    gap: 8px;
+    color: #2A2A2B;
+    font-weight: 500;
+  
+    &:hover {
+      background-color: variables.$button-color-active !important;
+    }
+  }
+
+  .hackaton-sidebar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 225px;
+    margin-top: 7px;
+  }
+
+  .hackaton-sidebar-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    font-size: 16px !important;
+    color: #000000;
+    margin-top: 25px;
+  }
+
+  .hackaton-sidebar-right .nextui-c-PJLV-ieZquTF-css {
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 130%;
+    color: #000000;
+  }
+
+  .hackaton-account-balance {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 32px;
+  }
+
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    text-align: left;
+    line-height: 1.5;
+    background: none;
+    border: 0;
+    border-radius: 8px;
+    align-items: center;
+    line-height: 1.5;
+    border-radius: 8px;
+    font-size: 14px;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    width: 100%;
+    color: #141414;
+
+  }
+  .sidebar-link:hover {
+    font-weight: 700;
+    color: #141414;
+  }
+  .sidebar-link-active {
+    font-weight: 700;
+    width: 100%;
+    color: #141414;
+    background-color: #ffffff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    line-height: 1.5;
+    border-radius: 8px;
+    font-size: 14px;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+}
+.sidebar-link-active {
+  font-weight: 700;
+    color: #141414 !important;
+}
+
+.sidebar-header {
+  font-weight: 400;
+font-size: 14px;
+line-height: 130%;
+text-transform: uppercase;
+color: #626267;
+text-align: start;
+padding-left: 16px;
+width: 100%;
+}
+
+.value-container {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  font-size: 16px;
+  align-items: center;
+  font-weight: 700;
+    width: 100%;
+  background-color: #ffffff;
+  border-radius: 4px;
+  padding-bottom: 32px;
+}
+
+.white-container {
+  background: #FFFFFF;
+border-radius: 4px;
+width: 100%;
+
+
+}
+
+.white-container th {
+  font-style: normal;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 130%;
+  color: #4B4B4E;
+}
+
+.white-container .nextui-table-container {
+  width: 100%;
+  box-shadow: none !important;
+}
+
+.page-title {
+  font-family: 'Canela Text';
+  font-style: normal;
+font-weight: 400;
+font-size: 36px;
+line-height: 130%;
+color: #141414;
+margin-bottom: 24px;
+}
+
+.sub-header-title {
+  font-family: 'Canela Text';
+  font-style: normal;
+font-weight: 400;
+font-size: 24px;
+line-height: 130%;
+color: #141414;
+margin-bottom: 16px;
+}
+
+.hackaton-footer {
+  margin-top: 50px;
+  display: flex;
+  width: 100%;
+  z-index: 100;
+  flex-direction: column;
+  position: relative;
+  align-items: center;
+  background-color: variables.$footer-background-color;
+  height: variables.$footer-height;
+  padding: 0 2rem;
+
+  .hackaton-footer-upper {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+
+    p {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 0;
+    }
+
+    
+  }
+  .footer-lower {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+
+    div {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+    }
+  }
+
+  a {
+    color: variables.$footer-link-color;
+    text-decoration: none;
+    width: 200px;
+    text-align: center;
+
+    &:hover {
+      color: variables.$footer-link-hover-color;
+      font-weight: bold;
+    }
+  }
+}

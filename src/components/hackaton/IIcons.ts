@@ -1,0 +1,1 @@
+export type IIcons = JSX.IntrinsicElements["svg"] & {};

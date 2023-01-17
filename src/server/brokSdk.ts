@@ -8,8 +8,10 @@ export async function getCompanyInformation(captableAddress: string) {
 export async function isSharesOwnedByTheWallet(captableAddress: string, walletAddress: string) {
   const sdk = await initSDK();
 	const captable = await sdk.getCapTable(captableAddress);
+	console.log(captable)
 	return captable.shareholders.some(
 		(tokenHolder) => {
+			console
 			return tokenHolder.ethAddress === walletAddress?.toString()
 		}
 	)

@@ -1,9 +1,5 @@
 import { SharesForSale } from "@prisma/client";
-import { ethers } from "ethers";
-import { Chain } from "wagmi";
 import { initSDK } from "../components/brok-sdk";
-import { GET_PROVIDER, BRIDGE_CHAIN_CONFIG, CONTRACT_ADDRESSES } from "../constants";
-import { CBToken__factory } from "../typechain-types";
 import prisma from "./prisma";
 
 export type BuyOrder = {
@@ -12,7 +8,7 @@ export type BuyOrder = {
   numberOfStocksToBuy: string
 }
 
-const taxERC20Address = "0x1BD2AfE3d185C4Aa0a667759A5652Ad41405A1B7";
+const taxERC20Address = "0x14fb5374d26c11010e264213ef6c7d6578b94bdc";
 
 export async function buyShare(buyOrder: BuyOrder) {
   // get sell order from db
@@ -29,42 +25,6 @@ export async function buyShare(buyOrder: BuyOrder) {
     console.log("Sell order with id: %d is no longer active", sharesForSale.id);
     return false;
   }
-  
-  const totalPrice = calculateTotalPrice(sharesForSale, buyOrder)
-  const tax = calculateTax(sharesForSale)
-  const totalPriceTaxDeducted = (+totalPrice - +tax).toString()
-  const skatteetatenAddress = "65bb057c4f0785896bef015da401498f33603747"
-  const taxToBePaid  = calculateTax(sharesForSale);
-  const profit = calculateProfit(sharesForSale)
-
-  // check if buyer have sufficient funds
-  if (! (await checkNokBalance(totalPrice))) {
-    return false
-  }
-
-   // transfer money from buyer to tax office
-   if (! (await moveMoney(taxERC20Address, taxToBePaid))) {
-    console.log("could not transer money to wallet %d", buyOrder.buyerID)
-    return false
-  }
-
-  // transfer money from buyer to seller
-  if (! (await moveMoney(buyOrder.buyerID, profit))) {
-    console.log("could not transer money to wallet %d", buyOrder.buyerID)
-    return false
-  }
-  // // transfer money
-  // if (! (await moveMoney(buyOrder.buyerID, totalPriceTaxDeducted))) {
-  //   console.log("could not transer money to wallet %d", buyOrder.buyerID)
-  //   return false
-  // }
-
-  // // transfer money to skatteetaten
-  // if (! (await moveMoney(skatteetatenAddress, tax, NORGES_BANK_CHAIN))) {
-  //   console.log("could not transer money to wallet %d", buyOrder.buyerID)
-  //   return false
-  // }
-
 
   // transfer shares
   if (! (await transferSharesFromSellerToBuyer(sharesForSale, buyOrder))) {
@@ -93,7 +53,7 @@ async function transferSharesFromSellerToBuyer(sharesForSale: SharesForSale, buy
   const result = await sdk.transfer(sharesForSale.captableAddress, [
     {
       from: sharesForSale.soldByAddress.toString(),
-      to: buyOrder.buyerID.toString(),
+      to: buyOrder.buyerID.toString().toLowerCase(),
       amount: buyOrder.numberOfStocksToBuy.toString(),
       partition: 'ordinære'
     },
@@ -121,11 +81,12 @@ async function setSellOrderToSoldInDatabase(sharesForSale: SharesForSale) {
 }
 
 async function createTransactionRecord(sharesForSale: SharesForSale, buyOrder: BuyOrder) {
+  console.log(`creating record ${sharesForSale.soldByAddress} ${buyOrder.buyerID}` )
   const db = await prisma.shareTransaction.create({
     data: {
       captableAddress: sharesForSale.captableAddress,
-      soldByAddress: sharesForSale.soldByAddress,
-      boughtByAddress: buyOrder.buyerID,
+      soldByAddress: sharesForSale.soldByAddress.toLowerCase(),
+      boughtByAddress: buyOrder.buyerID.toLowerCase(),
       companyName: sharesForSale.companyName,
       orgNumber: sharesForSale.orgNumber,
       price: sharesForSale.price.toNumber(),
@@ -150,47 +111,47 @@ function calculateProfit(sharesForSale: SharesForSale) : string {
   return (+sharesForSale.price - +sharesForSale.lastPrice).toString()
 }
 
-async function checkNokBalance(amount: string) {
-  const { destinationChain } = BRIDGE_CHAIN_CONFIG();
-  const walletDestination = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
-    GET_PROVIDER( destinationChain, { withNetwork: true }),
-  );
+// async function checkNokBalance(amount: string, address: string) {
+//   const { destinationChain } = BRIDGE_CHAIN_CONFIG();
+//   const walletDestination = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
+//     GET_PROVIDER( destinationChain, { withNetwork: true }),
+//   );
 
-  const destinationToken = CBToken__factory.connect(
-    CONTRACT_ADDRESSES[destinationChain.id].CB_TOKEN_BRIDGE_ADDRESS,
-    walletDestination,
-  );
+//   const destinationToken = CBToken__factory.connect(
+//     CONTRACT_ADDRESSES[destinationChain.id].CB_TOKEN_BRIDGE_ADDRESS,
+//     walletDestination,
+//   );
 
-  const balance = await destinationToken.balanceOf(walletDestination.address)
-  const abountBigNumber = ethers.utils.parseUnits(amount, 4)
+//   const balance = await destinationToken.balanceOf(address)
+//   const abountBigNumber = ethers.utils.parseUnits(amount, 4)
 
-  if (balance.gte(abountBigNumber)) {
-    return true
-  } else {
-    console.log("insufficient funds in wallet %s to buy shares for %d", walletDestination.address, amount)
-    return false
-  }
-}
+//   if (balance.gte(abountBigNumber)) {
+//     return true
+//   } else {
+//     console.log("insufficient funds in wallet %s to buy shares for %d", walletDestination.address, amount)
+//     return false
+//   }
+// }
 
-async function moveMoney(to: string, amount: string) {
-  try {
-    const { destinationChain } = BRIDGE_CHAIN_CONFIG();
+// async function moveMoney(to: string, amount: string) {
+//   try {
+//     const { destinationChain } = BRIDGE_CHAIN_CONFIG();
 
-    const walletDestination = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
-      GET_PROVIDER( destinationChain, { withNetwork: true }),
-    );
+//     const walletDestination = new ethers.Wallet(process.env.BRIDGE_OWNER_PRIVATE_KEY!).connect(
+//       GET_PROVIDER( destinationChain, { withNetwork: true }),
+//     );
   
-    const destinationToken = CBToken__factory.connect(
-      CONTRACT_ADDRESSES[destinationChain.id].CB_TOKEN_BRIDGE_ADDRESS,
-      walletDestination,
-    );
+//     const destinationToken = CBToken__factory.connect(
+//       CONTRACT_ADDRESSES[destinationChain.id].CB_TOKEN_BRIDGE_ADDRESS,
+//       walletDestination,
+//     );
   
-    const tx = await destinationToken.transfer(to, ethers.utils.parseUnits(amount, 4))
+//     const tx = await destinationToken.transfer(to, ethers.utils.parseUnits(amount, 4))
   
-    await tx.wait()
-    return true
-  } catch (error) {
-    console.error(error)
-    return false
-  }
-}
+//     await tx.wait()
+//     return true
+//   } catch (error) {
+//     console.error(error)
+//     return false
+//   }
+// }

@@ -14,7 +14,7 @@ interface SellSharesDto {
 
 export type SellSharesSidebarProps = {
   open: boolean;
-  eth20Address: string
+  eth20Address: string | undefined
   selectedStock: PortfolioSharesDto | undefined;
   handleClose: () => void;
 };
@@ -34,7 +34,7 @@ const SellSharesSidebar: FC<SellSharesSidebarProps> = ({
       captableAddress: selectedStock?.captableAddress ?? "",
       numberOfShares: numberOfShares,
       price: price,
-      soldByAddress: eth20Address,
+      soldByAddress: eth20Address ?? "",
     };
 
     try {
@@ -82,7 +82,7 @@ const SellSharesSidebar: FC<SellSharesSidebarProps> = ({
             <Form.Control
               type="number"
               placeholder="1"
-              onChange={(e) => setPrice(Number(e.target.value))}
+              onChange={(e) => setNumberOfShares(Number(e.target.value))}
             />
             <Form.Text className="text-muted">
               Du eier {selectedStock?.numberOfShares} aksjer i dette selskapet.
@@ -93,7 +93,7 @@ const SellSharesSidebar: FC<SellSharesSidebarProps> = ({
             <Form.Control
               type="number"
               placeholder="1.00"
-              onChange={(e) => setNumberOfShares(Number(e.target.value))}
+              onChange={(e) => setPrice(Number(e.target.value))}
             />
           </Form.Group>
           <div className="d-flex flex-row justify-content-center mt-5">

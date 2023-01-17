@@ -26,6 +26,7 @@ export interface PortfolioSharesDto {
 	orgNumber: string;
 	numberOfShares: number;
 	percentOfTotalShares: number;
+	lastPricePerShare: number;
   }
 
   interface TransactionDto {
@@ -39,7 +40,7 @@ export interface PortfolioSharesDto {
 	totalProfit : number;
 	numberOfShares : number;
 	taxPayed : number;
-	createdAt : Date;
+	createdAt : string;
   }
 
 const Page = () => {
@@ -71,15 +72,18 @@ const Page = () => {
 		if (currentNetwork !== Networks.ARBITRUM_GOERLI) {
 			switchToGoerliNetwork();
 		}
-		fetchPortfolio();
-		fetchTransactions();
-	  }, []);
+		if(address !== undefined) {
+			fetchPortfolio();
+			fetchTransactions();
+		}
+		
+	  }, [address]);
 
 	const fetchPortfolio = async () => {
 
 		try {
-
-			const res2 = await fetch("/api/list-portfolio/0xb415f84064f46732e179aa0e43059533f487243c", { //"
+			console.log("portfolio from "+address)
+			const res2 = await fetch(`/api/list-portfolio/${address}`, {
 				headers: {
 					"Content-Type": "application/json",
 				},
@@ -95,14 +99,15 @@ const Page = () => {
 const fetchTransactions = async () => {
 
 	try {
-
-		const res2 = await fetch("/api/list-transactions/0xb415f84064f46732e179aa0e43059533f487243c", { //"
+		console.log("transactions from "+address)
+		const res2 = await fetch(`/api/list-transactions/${address}`, {
 			headers: {
 				"Content-Type": "application/json",
 			},
 		});
 		const json = await res2.json();
-		 setStocksInPortfolio(json);
+		console.log(json.shares);
+		setTransactions(json.shares);
 	} catch (error) {
 		log(error);
 	}
@@ -124,9 +129,10 @@ const renderPortfolioTableRows = useCallback(
 			<Table.Cell>{companyShares.orgNumber}</Table.Cell>
             <Table.Cell>{companyShares.numberOfShares}</Table.Cell>
             <Table.Cell>{companyShares.percentOfTotalShares} %</Table.Cell>
+			<Table.Cell>{companyShares.lastPricePerShare * companyShares.numberOfShares} kr</Table.Cell>
 			  <Table.Cell>
               <Button
-                className="action-button"
+                className="action-button-secondary"
                 variant="primary"
                 onClick={() => openSalesModal(companyShares)}
               >
@@ -141,11 +147,16 @@ const renderPortfolioTableRows = useCallback(
 
   const renderTransactionsTableRows = useCallback(
     () =>
+	
 	transactions.map((transaction : TransactionDto, index) => {
+		let date = new Date(transaction.createdAt.substring(0,19).concat("Z"));
+			let dateString = `${date.getDate()}.${date.getMonth()+1}.${date.getFullYear()}`;
+			let timeString = `${date.getHours() > 9 ? date.getHours(): "0"+date.getHours()}:${date.getMinutes()}`
         return (
 			<Table.Row key={index}>
-            <Table.Cell>{transaction.createdAt.toLocaleTimeString()}</Table.Cell>
-            <Table.Cell>{transaction.companyName}</Table.Cell>
+			<Table.Cell>{transaction.companyName}</Table.Cell>
+            <Table.Cell>{dateString}</Table.Cell>
+			<Table.Cell>{timeString}</Table.Cell>
             <Table.Cell>{transaction.numberOfShares}</Table.Cell>
 			<Table.Cell>{transaction.price} kr</Table.Cell>
 			<Table.Cell>{transaction.totalPrice} kr</Table.Cell>
@@ -153,8 +164,8 @@ const renderPortfolioTableRows = useCallback(
 			<Table.Cell>{transaction.taxPayed} kr</Table.Cell>
 			</Table.Row>
         );
-      }),
-    [stocksInPortfolio]
+      }) ,
+    [transactions]
   );
 
 //   if (currentNetwork !== Networks.ARBITRUM_GOERLI) {
@@ -169,79 +180,53 @@ const renderPortfolioTableRows = useCallback(
 // }
 
 	return (
-		<Container gap={1}>
-
-			<Card>
-				<Card.Header className="hackaton-header">Din portfølje:</Card.Header>
-				<Card.Body>
-					 <p className="portfolio-address">Ethereum adresse: "0xb415f84064f46732e179aa0e43059533f487243c"</p> {/*{address} */}
-				<Table>
-					<Table.Header>
-        <Table.Column>Selskap</Table.Column>
-        <Table.Column>Organisasjonsnummer</Table.Column>
-        <Table.Column>Antall</Table.Column>
-		<Table.Column>Eierskapsandel</Table.Column>
-		<Table.Column>Selg</Table.Column>
-		</Table.Header>
-		<Table.Body>{renderPortfolioTableRows()}</Table.Body>
-      
-	  </Table>
-	  </Card.Body>
-			</Card>
-
+		<div>
+			<Row>
+				<h1 className="page-title">Aksjeportefølje</h1>
+			</Row>
+			<Row className="white-container">
+					<Table className="w-100">
+							<Table.Header>
+				<Table.Column>Selskap</Table.Column>
+				<Table.Column>Organisasjonsnummer</Table.Column>
+				<Table.Column>Antall aksjer</Table.Column>
+				<Table.Column>Eierskapsandel</Table.Column>
+				<Table.Column>Totalverdi</Table.Column>
+				<Table.Column>Selg</Table.Column>
+				</Table.Header>
+				<Table.Body>{renderPortfolioTableRows()}</Table.Body>
 			
-
-			<Spacer></Spacer>
-
-			<Card>
-				<Card.Header className="hackaton-header">Valutta på Brøk-kjeden:</Card.Header>
-				<Card.Body>
-					<Row>
-						<AccountBalance accountAddress={"0xb415f84064f46732e179aa0e43059533f487243c"} tokenAddress={networkContractAddresses[currentNetwork].CB_TOKEN_BRIDGE_ADDRESS}/>{/*{address} */}
-					</Row>
-				</Card.Body>
-			</Card>
-
-			<Spacer></Spacer>
-
-			<Card>
-				<Card.Header className="hackaton-header">Valutta på Brøk-adressen til skatteetaten:</Card.Header>
-				<Card.Body>
-					<Row>
-						<AccountBalance accountAddress={taxERC20Address} tokenAddress={networkContractAddresses[currentNetwork].CB_TOKEN_BRIDGE_ADDRESS}/>{/*{address} */}
-					</Row>
-				</Card.Body>
-			</Card>
-
-			<Spacer></Spacer>
-
-			<Card>
-				<Card.Header className="hackaton-header">Dine siste transaksjoner:</Card.Header>
-				<Card.Body>
+			</Table>
+			</Row>
+			<Row style={{marginTop:64}}>
+				<h1 className="sub-header-title">Dine siste transaksjoner</h1>
+			</Row>
+			<Row className="white-container">
 				<Table>
-					<Table.Header>
-						<Table.Column>Tidspunkt</Table.Column>
-						<Table.Column>Selskap</Table.Column>
-						<Table.Column>Antall</Table.Column>
-						<Table.Column>Pris</Table.Column>
-						<Table.Column>Totalverdi</Table.Column>
-						<Table.Column>Fortjeneste</Table.Column>
-						<Table.Column>Skatt</Table.Column>
-					</Table.Header>
-					<Table.Body>{renderTransactionsTableRows()}</Table.Body>
-      
-	  </Table>
-	  </Card.Body>
-			</Card>
+						<Table.Header>
+							<Table.Column>Selskap</Table.Column>
+							<Table.Column>Dato</Table.Column>
+							<Table.Column>Tidspunkt</Table.Column>
+							<Table.Column>Antall aksjer</Table.Column>
+							<Table.Column>Pris</Table.Column>
+							<Table.Column>Totalverdi</Table.Column>
+							<Table.Column>Fortjeneste</Table.Column>
+							<Table.Column>Skatt</Table.Column>
+						</Table.Header>
+						<Table.Body>{renderTransactionsTableRows()}</Table.Body>
+		
+				</Table>
+			</Row>
+			
 			<SellSharesSidebar
         open={openSidebar}
-		eth20Address={"0xb415f84064f46732e179aa0e43059533f487243c"}
+		eth20Address={address}
         selectedStock={selectedStock}
         handleClose={() => {
           setOpenSidebar(false);
         }}
       />
-		</Container>
+		</div>
 	);
 };
 

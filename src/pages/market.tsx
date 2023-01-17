@@ -13,9 +13,12 @@ import { WithdrawTokens } from "../components/WithdrawTokens";
 import { ethers } from "ethers";
 import { cbTokenABI } from "../abis/CBToken";
 import { validAndPostiveBN } from "../components/utils/blockchain-utils";
-import { TX_OVERRIDE } from "../constants";
+import { BRIDGE_CHAIN_CONFIG, CONTRACT_ADDRESSES, GET_PROVIDER, TX_OVERRIDE } from "../constants";
 import { HackatonLayout } from "../components/hackaton/HackatonLayout";
 import { Button } from "react-bootstrap";
+import { useWebWalletState } from "../components/web-wallet/web-wallet-state";
+import { CBToken__factory } from "../typechain-types";
+
 
 interface BuySharesDto {
     transactionID: number;
@@ -45,6 +48,8 @@ const Page = () => {
 		isDestinationNetwork,
 		isGasless,
 	} = useAppState();
+
+	const { secret} = useWebWalletState()
 	const { chain } = useNetwork();
 	const { address} = useAccount();
 	const [sellOrders, setSellOrders] = useState([]);
@@ -101,7 +106,30 @@ const Page = () => {
 	
 	};
 
-	async function buyShares(shares: SharesInMarketDto) {
+	async function moveMoney(to: string, amount: string, walletSecret: string | undefined) {
+		try {
+		  const { destinationChain } = BRIDGE_CHAIN_CONFIG();
+	  
+		  const walletDestination = new ethers.Wallet(walletSecret!).connect(
+			GET_PROVIDER( destinationChain, { withNetwork: true }),
+		  );
+		
+		  const destinationToken = CBToken__factory.connect(
+			CONTRACT_ADDRESSES[destinationChain.id].CB_TOKEN_BRIDGE_ADDRESS,
+			walletDestination,
+		  );
+		
+		  const tx = await destinationToken.transfer(to, ethers.utils.parseUnits(amount, 4))
+		
+		  await tx.wait()
+		  return true
+		} catch (error) {
+		  console.error(error)
+		  return false
+		}
+	  }
+
+	async function buyShares(shares: SharesInMarketDto, walleSecret: string | undefined)  {
 		const buyRequest: BuySharesDto = {
 			transactionID: shares.id,
 			buyerID: `${address}`,
@@ -123,6 +151,7 @@ const Page = () => {
 				const json = await res.json();
 				console.log(json);
 				toast(`Du kjøpte ${shares.numberOfShares} aksjer av ${shares.companyName}`, { type: "success" });
+				fetchSharesInMarket();
 			}
 			
 		} catch (error) {
@@ -131,13 +160,16 @@ const Page = () => {
 		}
 	
 		console.log("sell now");
+		// const totalPrice = shares.price * shares.numberOfShares;
+		// moveMoney(shares.soldByAddress, totalPrice.toString(), walleSecret)
 	  }
 
 	const renderMarketTableRows = useCallback(
 		() =>
-		  sharesInMarket.map((companyShares : SharesInMarketDto, index) => {
+		  sharesInMarket?.map((companyShares : SharesInMarketDto, index) => {
 			let date = new Date(companyShares.createdAt.substring(0,19).concat("Z"));
-			let dateString = `${date.getDate()}.${date.getMonth()+1}.${date.getFullYear()} ${date.getHours() > 9 ? date.getHours(): "0"+date.getHours()}:${date.getMinutes()}`
+			let dateString = `${date.getDate()}.${date.getMonth()+1}.${date.getFullYear()}`;
+			let timeString = `${date.getHours() > 9 ? date.getHours(): "0"+date.getHours()}:${date.getMinutes()}`
 			return (
 				<Table.Row key={index}>
 				<Table.Cell>{companyShares.companyName}</Table.Cell>
@@ -145,11 +177,12 @@ const Page = () => {
 				<Table.Cell>{companyShares.price} kr</Table.Cell>
 				<Table.Cell>{companyShares.numberOfShares}</Table.Cell>
 				<Table.Cell>{dateString}</Table.Cell>
+				<Table.Cell>{timeString}</Table.Cell>
 				  <Table.Cell>
 				  <Button
                 className="action-button"
                 variant="primary"
-					onClick={() => buyShares(companyShares)}
+					onClick={() => buyShares(companyShares, secret)}
 				  >
 					Kjøp aksjer
 				  </Button>
@@ -172,43 +205,26 @@ const Page = () => {
 	// }
 
 	return (
-		<Container gap={1}>
-
-			<Card>
-				<Card.Header className="hackaton-header">Marked:</Card.Header>
-				<Card.Body>
-					
-				<Table>
-					<Table.Header>
-						<Table.Column>Selskap</Table.Column>
+		<div>
+			<Row>
+				<h1 className="page-title">Aksjehandel</h1>
+			</Row>
+			<Row className="white-container">
+					<Table className="w-100">
+							<Table.Header>
+							<Table.Column>Selskap</Table.Column>
 						<Table.Column>Organisasjonsnummer</Table.Column>
 						<Table.Column>Pris</Table.Column>
-						<Table.Column>Antall</Table.Column>
-						<Table.Column>Listet dato</Table.Column>
+						<Table.Column>Antall aksjer</Table.Column>
+						<Table.Column>Dato</Table.Column>
+						<Table.Column>Tidspunkt</Table.Column>
 						<Table.Column>Kjøp</Table.Column>
-					</Table.Header>
-					<Table.Body>{renderMarketTableRows()}</Table.Body>
-      
-	  </Table>
-	  </Card.Body>
-			</Card>
-
+				</Table.Header>
+				<Table.Body>{renderMarketTableRows()}</Table.Body>
 			
-
-			<Spacer></Spacer>
-
-			<Card>
-				<Card.Header className="hackaton-header">Valutta på Brøk-kjeden:</Card.Header>
-				<Card.Body>
-				<p className="portfolio-address">Ethereum adresse: {address}</p>
-					<Row>
-						<AccountBalance accountAddress={address} tokenAddress={networkContractAddresses[currentNetwork].CB_TOKEN_BRIDGE_ADDRESS}/>
-					</Row>
-				</Card.Body>
-			</Card>
-
-			<Spacer></Spacer>
-		</Container>
+			</Table>
+			</Row>
+			</div>
 	);
 };
 
