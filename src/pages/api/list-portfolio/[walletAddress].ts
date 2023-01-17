@@ -13,6 +13,21 @@ interface Portfolio {
 	lastPricePerShare: Number
 }
 
+function fixOrgNumber(orgNumber: string) {
+	if(orgNumber == "312176633123") {
+		return "312176633"
+	}
+	else if(orgNumber == "custody_custard_abga") {
+		return "843928311"
+	}
+	else if(orgNumber == "custody_custard_bhp") {
+		return "829433262"
+	}
+	else {
+		return orgNumber
+	}
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	const sdk = await initSDK();
 	const { walletAddress } = req.query
@@ -33,10 +48,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				)
 		})
 		
+		// portfolioAllData[0].fagsystem
+		// const correctSystem = allCapTables.filter((shares) => shares.fagsystem == portfolioAllData[0].fagsystem)
+
+		// for(let i = 0; i < 20; i++) {
+		// 	let item = correctSystem[i+20];
+		// 	console.log(`${item.name} ${item.id} -- ${item.tokenHolders[0].address} ${item.tokenHolders[0].balances[0].amount}`)
+		// }
+		
 		let data = portfolioAllData.map((obj => <Portfolio>{
 			captableAddress: obj.id,
 			companyName: obj.name,
-			orgNumber: obj.orgnr,
+			orgNumber: fixOrgNumber(obj.orgnr),
 			numberOfShares: numberOfShares(obj.tokenHolders, walletAddress?.toString().toLowerCase()),
 			percentOfTotalShares: percentOfTotalShares(obj, walletAddress?.toString().toLowerCase()),
 			lastPricePerShare: Math.round(Math.random()*300)

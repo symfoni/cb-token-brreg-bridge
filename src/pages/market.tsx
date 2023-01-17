@@ -129,10 +129,10 @@ const Page = () => {
 		}
 	  }
 
-	async function buyShares(shares: SharesInMarketDto, walleSecret: string | undefined)  {
+	async function buyShares(shares: SharesInMarketDto, walleSecret: string, walletAddress: string)  {
 		const buyRequest: BuySharesDto = {
 			transactionID: shares.id,
-			buyerID: `${address}`,
+			buyerID: walletAddress,
 			numberOfStocksToBuy: shares.numberOfShares,
 		};
 
@@ -174,15 +174,19 @@ const Page = () => {
 				<Table.Row key={index}>
 				<Table.Cell>{companyShares.companyName}</Table.Cell>
 				<Table.Cell>{companyShares.orgNumber}</Table.Cell>
-				<Table.Cell>{companyShares.price} kr</Table.Cell>
-				<Table.Cell>{companyShares.numberOfShares}</Table.Cell>
+				<Table.Cell>{companyShares.price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, " ")} kr</Table.Cell>
+				<Table.Cell><div style={{textAlign:"center"}}>{companyShares.numberOfShares}</div></Table.Cell>
 				<Table.Cell>{dateString}</Table.Cell>
 				<Table.Cell>{timeString}</Table.Cell>
 				  <Table.Cell>
 				  <Button
                 className="action-button"
                 variant="primary"
-					onClick={() => buyShares(companyShares, secret)}
+					onClick={() => {
+						if(secret != undefined && address != undefined) {
+							buyShares(companyShares, secret, address)}
+						}
+					}
 				  >
 					Kjøp aksjer
 				  </Button>

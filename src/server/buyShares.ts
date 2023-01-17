@@ -50,6 +50,20 @@ async function getSellOrderFromDb(orderId: number) {
 
 async function transferSharesFromSellerToBuyer(sharesForSale: SharesForSale, buyOrder: BuyOrder) {
   const sdk = await initSDK();
+
+//temp data remove this
+// const captableId = "0x9645b1b0b76543e2cfae001deeaea81b4d975915"
+// const fromId = "0x18ea58c3ff111de7270461062ea9d21b12e9a072"
+// const amount = "348"
+// const result = await sdk.transfer(captableId, [
+//   {
+//     from: fromId,
+//     to: buyOrder.buyerID.toString().toLowerCase(),
+//     amount: amount,
+//     partition: 'ordinære'
+//   },
+// ]);
+
   const result = await sdk.transfer(sharesForSale.captableAddress, [
     {
       from: sharesForSale.soldByAddress.toString(),
@@ -90,7 +104,7 @@ async function createTransactionRecord(sharesForSale: SharesForSale, buyOrder: B
       companyName: sharesForSale.companyName,
       orgNumber: sharesForSale.orgNumber,
       price: sharesForSale.price.toNumber(),
-      totalPrice: calculateTotalPrice(sharesForSale, buyOrder),
+      totalPrice: calculateTotalPrice(sharesForSale),
       totalProfit: calculateProfit(sharesForSale),
       numberOfShares: sharesForSale.numberOfShares,
       taxPayed: calculateTax(sharesForSale)
@@ -99,16 +113,16 @@ async function createTransactionRecord(sharesForSale: SharesForSale, buyOrder: B
   console.log("Create a new database entry for this transaction with id: " + db.id)
 }
 
-function calculateTax(sharesForSale: SharesForSale) : string {
-  return (+calculateProfit(sharesForSale) * 1.72 * 0.22).toString()
+function calculateTax(sharesForSale: SharesForSale) : number {
+  return Math.round(calculateProfit(sharesForSale) * 1.72 * 0.22)
 }
 
-function calculateTotalPrice(sharesForSale: SharesForSale, buyOrder: BuyOrder) : string {
-  return (+sharesForSale.price * +buyOrder.numberOfStocksToBuy).toString()
+function calculateTotalPrice(sharesForSale: SharesForSale) : number {
+  return (Number(sharesForSale.price)* Number(sharesForSale.numberOfShares))
 }
 
-function calculateProfit(sharesForSale: SharesForSale) : string {
-  return (+sharesForSale.price - +sharesForSale.lastPrice).toString()
+function calculateProfit(sharesForSale: SharesForSale) : number {
+  return (Number(sharesForSale.price) - Number(sharesForSale.lastPrice))* Number(sharesForSale.numberOfShares)
 }
 
 // async function checkNokBalance(amount: string, address: string) {

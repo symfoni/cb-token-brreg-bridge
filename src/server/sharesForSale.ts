@@ -16,6 +16,21 @@ export async function getSharesForSale() {
 	});
 }
 
+function fixOrgNumber(orgNumber: string) {
+	if(orgNumber == "312176633123") {
+		return "312176633"
+	}
+	else if(orgNumber == "custody_custard_abga") {
+		return "843928311"
+	}
+	else if(orgNumber == "custody_custard_bhp") {
+		return "829433262"
+	}
+	else {
+		return orgNumber
+	}
+}
+
 export async function createSharesForSale(sellShares: SellSharesRequest) {
 	const companyInfo = await getCompanyInformation(sellShares.captableAddress);
 	const owned = await isSharesOwnedByTheWallet(sellShares.captableAddress.toLowerCase(), sellShares.soldByAddress.toLowerCase())
@@ -25,7 +40,7 @@ export async function createSharesForSale(sellShares: SellSharesRequest) {
 				captableAddress: sellShares.captableAddress,
 				soldByAddress: sellShares.soldByAddress,
 				companyName: companyInfo.name,
-				orgNumber: companyInfo.orgnr,
+				orgNumber: fixOrgNumber(companyInfo.orgnr), //fix her
 				price: sellShares.price,
 				lastPrice: 1,
 				sold: false,

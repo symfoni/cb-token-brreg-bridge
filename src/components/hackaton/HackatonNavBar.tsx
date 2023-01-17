@@ -6,6 +6,7 @@ import { WebWalletConnectButton } from "../web-wallet/WebWalletConnectButton";
 import debug from "debug";
 import { useAppState } from "../app-state";
 import UnlistedLogo from "./UnlistedLogo";
+import { WebWalletConnectContainer } from "./WebWalletConnectContainer";
 const log = debug("bridge:NavBar");
 
 interface Props {}
@@ -36,7 +37,7 @@ export const HackatonNavBar: React.FC<Props> = ({ ...props }) => {
               /></div>
 					</Col>
 					<Col className="header-right">
-					<WebWalletConnectButton></WebWalletConnectButton></Col>
+					<WebWalletConnectContainer/></Col>
 				</Row>
 	);
 };

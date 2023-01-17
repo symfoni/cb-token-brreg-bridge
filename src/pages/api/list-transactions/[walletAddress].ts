@@ -7,7 +7,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 	try {
 		if(walletAddress != undefined) {
-			let shares = await getSharesTransactions(walletAddress.toString());
+			let shares = await getSharesTransactions(walletAddress.toString().toLowerCase());
+			console.log(walletAddress.toString().toLowerCase())
 			return res.status(200).json({shares});
 		}
 		

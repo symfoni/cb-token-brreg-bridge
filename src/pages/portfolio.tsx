@@ -14,6 +14,7 @@ import { WithdrawTokens } from "../components/WithdrawTokens";
 import { HackatonLayout } from "../components/hackaton/HackatonLayout";
 import SellSharesSidebar from "../components/hackaton/SellSharesSidebar";
 import { Button } from "react-bootstrap";
+import SellSharesModal from "../components/hackaton/SellSharesModal";
 
 
 const log = debug("bridge:portfolio");
@@ -58,6 +59,9 @@ const Page = () => {
   >([]);
   const [openSidebar, setOpenSidebar] = useState<boolean>(false);
   const [selectedStock, setSelectedStock] = useState<PortfolioSharesDto>();
+  const [totalValue, setTotalValue] = useState<string>();
+  const [totalGain, setTotalGain] = useState<string>();
+  const [totalTax, setTotalTax] = useState<string>();
 
   const switchToGoerliNetwork = useCallback(
 	async () => {
@@ -90,6 +94,8 @@ const Page = () => {
 			});
 			const json = await res2.json();
 			 setStocksInPortfolio(json);
+			 const sum = json.reduce((partialSum : number, a : PortfolioSharesDto) => partialSum + (a.lastPricePerShare * a.numberOfShares), 0);
+			 setTotalValue(sum.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, " "));
 		} catch (error) {
 			log(error);
 		}
@@ -106,8 +112,17 @@ const fetchTransactions = async () => {
 			},
 		});
 		const json = await res2.json();
-		console.log(json.shares);
-		setTransactions(json.shares);
+		const toArray : TransactionDto[] = json.shares;
+		const reversed = toArray.reverse();
+		console.log(reversed);
+		setTransactions(reversed);
+		const sales = reversed.filter((transaction) => transaction.boughtByAddress != address?.toString().toLocaleLowerCase())
+		console.log(sales)
+		const gain = sales.reduce((partialSum : number, a : TransactionDto) => partialSum + Number(a.totalProfit), 0);
+		console.log("gain"+gain)
+		const tax = sales.reduce((partialSum : number, a : TransactionDto) => partialSum + Number(a.taxPayed), 0);
+			 setTotalGain(gain.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, " "));
+			 setTotalTax(tax.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, " "));
 	} catch (error) {
 		log(error);
 	}
@@ -122,14 +137,15 @@ function openSalesModal(stock: PortfolioSharesDto) {
 
 const renderPortfolioTableRows = useCallback(
     () =>
-      stocksInPortfolio.map((companyShares : PortfolioSharesDto, index) => {
+      stocksInPortfolio.sort((a, b) => a.companyName.localeCompare(b.companyName))
+	  .map((companyShares : PortfolioSharesDto, index) => {
         return (
 			<Table.Row key={index}>
             <Table.Cell>{companyShares.companyName}</Table.Cell>
 			<Table.Cell>{companyShares.orgNumber}</Table.Cell>
             <Table.Cell>{companyShares.numberOfShares}</Table.Cell>
-            <Table.Cell>{companyShares.percentOfTotalShares} %</Table.Cell>
-			<Table.Cell>{companyShares.lastPricePerShare * companyShares.numberOfShares} kr</Table.Cell>
+            <Table.Cell>{companyShares.percentOfTotalShares.toFixed(2)} %</Table.Cell>
+			<Table.Cell>{(companyShares.lastPricePerShare * companyShares.numberOfShares).toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, " ")} kr</Table.Cell>
 			  <Table.Cell>
               <Button
                 className="action-button-secondary"
@@ -147,25 +163,26 @@ const renderPortfolioTableRows = useCallback(
 
   const renderTransactionsTableRows = useCallback(
     () =>
-	
 	transactions.map((transaction : TransactionDto, index) => {
 		let date = new Date(transaction.createdAt.substring(0,19).concat("Z"));
 			let dateString = `${date.getDate()}.${date.getMonth()+1}.${date.getFullYear()}`;
 			let timeString = `${date.getHours() > 9 ? date.getHours(): "0"+date.getHours()}:${date.getMinutes()}`
+			let bought = transaction.boughtByAddress == address?.toString().toLocaleLowerCase()
         return (
 			<Table.Row key={index}>
+			<Table.Cell>{bought ? "Kjøp" : "Salg"}</Table.Cell>
 			<Table.Cell>{transaction.companyName}</Table.Cell>
             <Table.Cell>{dateString}</Table.Cell>
 			<Table.Cell>{timeString}</Table.Cell>
-            <Table.Cell>{transaction.numberOfShares}</Table.Cell>
-			<Table.Cell>{transaction.price} kr</Table.Cell>
-			<Table.Cell>{transaction.totalPrice} kr</Table.Cell>
-			<Table.Cell>{transaction.totalProfit} kr</Table.Cell>
-			<Table.Cell>{transaction.taxPayed} kr</Table.Cell>
+            <Table.Cell>{transaction.numberOfShares.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, " ")}</Table.Cell>
+			<Table.Cell>{transaction.price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, " ")} kr</Table.Cell>
+			<Table.Cell>{transaction.totalPrice.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, " ")} kr</Table.Cell>
+			<Table.Cell>{bought ? "Ingen" : `${transaction.totalProfit.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, " ")} kr`}</Table.Cell>
+			<Table.Cell>{bought ? "Ingen" : `${transaction.taxPayed.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, " ")} kr`}</Table.Cell>
 			</Table.Row>
         );
       }) ,
-    [transactions]
+    [transactions, address]
   );
 
 //   if (currentNetwork !== Networks.ARBITRUM_GOERLI) {
@@ -184,8 +201,8 @@ const renderPortfolioTableRows = useCallback(
 			<Row>
 				<h1 className="page-title">Aksjeportefølje</h1>
 			</Row>
-			<Row className="white-container">
-					<Table className="w-100">
+			<Row className="white-container" style={{zIndex:2}}>
+					<Table className="w-100" lined>
 							<Table.Header>
 				<Table.Column>Selskap</Table.Column>
 				<Table.Column>Organisasjonsnummer</Table.Column>
@@ -198,12 +215,19 @@ const renderPortfolioTableRows = useCallback(
 			
 			</Table>
 			</Row>
+			<div className="white-container px-3 pb-3" style={{marginTop:-15,zIndex:10, position:"relative"}}>
+			<div className="hackaton-sum-container " style={{zIndex:10}}>
+				<p className="hackaton-strong-text m-auto ms-3">Total</p>
+				<p className="hackaton-strong-text my-auto" style={{textAlign:"end", marginRight:225}}>{`${totalValue} kr`}</p>
+			</div>
+			</div>
 			<Row style={{marginTop:64}}>
 				<h1 className="sub-header-title">Dine siste transaksjoner</h1>
 			</Row>
 			<Row className="white-container">
-				<Table>
+				<Table lined>
 						<Table.Header>
+							<Table.Column>Kjøp/Salg</Table.Column>
 							<Table.Column>Selskap</Table.Column>
 							<Table.Column>Dato</Table.Column>
 							<Table.Column>Tidspunkt</Table.Column>
@@ -213,12 +237,19 @@ const renderPortfolioTableRows = useCallback(
 							<Table.Column>Fortjeneste</Table.Column>
 							<Table.Column>Skatt</Table.Column>
 						</Table.Header>
-						<Table.Body>{renderTransactionsTableRows()}</Table.Body>
+						<Table.Body>{transactions && renderTransactionsTableRows()}</Table.Body>
 		
 				</Table>
 			</Row>
+			<div className="white-container px-3 pb-3" style={{marginTop:-15,zIndex:10, position:"relative"}}>
+			<div className="hackaton-sum-container " style={{zIndex:10}}>
+				<p className="hackaton-strong-text m-auto ms-3">Total</p>
+				<p className="hackaton-strong-text my-auto" style={{textAlign:"end", marginRight:60}}>{`${totalGain} kr`}</p>
+				<p className="hackaton-strong-text my-auto" style={{textAlign:"end", marginRight:40}}>{`${totalTax} kr`}</p>
+			</div>
+			</div>
 			
-			<SellSharesSidebar
+			<SellSharesModal
         open={openSidebar}
 		eth20Address={address}
         selectedStock={selectedStock}
@@ -233,7 +264,7 @@ const renderPortfolioTableRows = useCallback(
 Page.getLayout = function getLayout(page: ReactElement) {
 	if (client) {
 		return (
-			<HackatonLayout >
+			<HackatonLayout>
 				{page}
 				<ToastContainer position="bottom-left"></ToastContainer>
 			</HackatonLayout>

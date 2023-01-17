@@ -286,3 +286,108 @@ margin-bottom: 16px;
     }
   }
 }
+
+.hackaton-modal {
+  width: 695px;
+  height: 510px;
+  background: #FFFFFF;
+
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1), 0px 4px 16px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hackaton-modal .input-label {
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 130%;
+  color: #2A2A2B;
+}
+
+.hackaton-modal .input-box {
+  width: 423px;
+  height: 48px;
+  border-radius: 4px;
+}
+
+.hackaton-modal-company-name {
+  font-style: normal;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 130%;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+
+.hackaton-sum-container {
+  height: 56px;
+  background: #F9F9F9;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.hackaton-strong-text{
+  font-style: normal;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 130%;
+}
+
+.white-container .nextui-table-header-row {
+  height: 56px;
+  background: #F9F9F9;
+  border-radius: 4px;
+}
+
+.white-container .nextui-c-kNgzEX {
+  background: #F9F9F9 !important;
+}
+
+.white-container .nextui-c-eKxzBn {
+  overflow: visible;
+}
+
+.login-card {
+  background: #F5F5F5;
+  width: 182px;
+  height: 44px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  box-shadow: 0 2px 3px rgba(0,0,0,.05),0 4px 8px rgba(0,0,0,.15);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.login-name {
+  width: 108px;
+height: 16px;
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 130%;
+display: flex;
+align-items: center;
+text-align: center;
+flex-direction: row;
+justify-content: center;
+}
+
+.avatar {
+  background-image: url(../components/hackaton/Avatar.png);
+  height: 33px;
+  width: 33px;
+  margin-left: 12px;
+}
+
+.avatar-tom {
+  height: 33px;
+  width: 33px;
+  margin-left: 12px;
+}
+
