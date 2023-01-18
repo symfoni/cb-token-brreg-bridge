@@ -26,7 +26,7 @@ export const HackatonLayout = ({ children }: DefaultLayoutProps) => {
 							<HackatonNavBar></HackatonNavBar>
 
 
-						<Row>
+						<Row className="hackaton-content">
 							<Col xs={4} style={{width:225}}>
 							<HackatonSidebarLeft/>
 							</Col>
@@ -37,10 +37,13 @@ export const HackatonLayout = ({ children }: DefaultLayoutProps) => {
 							<HackatonSidebarRight/>
 							</Col>
 						</Row>
+						<HackatonFooter/>
 					</div>
+					
 				</WagmiConfig>
+				
 			</main>
-			<HackatonFooter/>
+			
 		</NextUIProvider>
 	);
 };

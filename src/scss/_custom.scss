@@ -240,50 +240,17 @@ margin-bottom: 16px;
   display: flex;
   width: 100%;
   z-index: 100;
-  flex-direction: column;
+  flex-direction: row;
   position: relative;
-  align-items: center;
-  background-color: variables.$footer-background-color;
-  height: variables.$footer-height;
-  padding: 0 2rem;
+  justify-content: space-between;
+  padding: 0 32px;
 
-  .hackaton-footer-upper {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    justify-content: center;
-    margin-bottom: 0.5rem;
-
-    p {
-      width: 100%;
-      text-align: center;
-      margin-bottom: 0;
-    }
-
-    
-  }
-  .footer-lower {
-    display: flex;
-    width: 100%;
-    flex-direction: row;
-
-    div {
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-    }
-  }
-
-  a {
-    color: variables.$footer-link-color;
-    text-decoration: none;
-    width: 200px;
-    text-align: center;
-
-    &:hover {
-      color: variables.$footer-link-hover-color;
-      font-weight: bold;
-    }
+  p {
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 130%;
+    color: #89898D;
   }
 }
 
@@ -389,5 +356,9 @@ justify-content: center;
   height: 33px;
   width: 33px;
   margin-left: 12px;
+}
+
+.hackaton-content {
+  min-height: 82vh;
 }
 
