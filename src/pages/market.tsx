@@ -18,6 +18,7 @@ import { HackatonLayout } from "../components/hackaton/HackatonLayout";
 import { Button } from "react-bootstrap";
 import { useWebWalletState } from "../components/web-wallet/web-wallet-state";
 import { CBToken__factory } from "../typechain-types";
+import { Exception } from "sass";
 
 
 interface BuySharesDto {
@@ -37,6 +38,8 @@ interface SharesInMarketDto {
 	createdAt: string;
   }
 
+  const taxERC20Address = "0x14fb5374d26c11010e264213ef6c7d6578b94bdc";
+
 const log = debug("bridge:market");
 
 const Page = () => {
@@ -49,7 +52,7 @@ const Page = () => {
 		isGasless,
 	} = useAppState();
 
-	const { secret} = useWebWalletState()
+	const { secret } = useWebWalletState()
 	const { chain } = useNetwork();
 	const { address} = useAccount();
 	const [sellOrders, setSellOrders] = useState([]);
@@ -71,10 +74,11 @@ const Page = () => {
 	const [sharesInMarket, setSharesInMarket] = useState<
     SharesInMarketDto[]
   >([]);
+  const [selectedShares, setSelectedShares] = useState<SharesInMarketDto>();
 
   const switchToGoerliNetwork = useCallback(
 	async () => {
-		updateCurrentNetwork(chains[1].id);
+		updateCurrentNetwork(421613);
 	},
 	[switchNetwork],
 );
@@ -86,6 +90,10 @@ const Page = () => {
 
 	fetchSharesInMarket();
   }, []);
+
+  useEffect(() => {
+	console.log(secret);
+  }, [secret])
 
 	// TODO - Fetch my sell orders
 	const fetchSharesInMarket = async () => {
@@ -106,14 +114,42 @@ const Page = () => {
 	
 	};
 
-	async function moveMoney(to: string, amount: string, walletSecret: string | undefined) {
+	function calculateProfit(shares: SharesInMarketDto) {
+		const profitPerShare = shares.price -1
+		return profitPerShare * shares.numberOfShares;
+	}
+
+	function calculateTax(profit: number) {
+		return profit*1.72 * 0.22;
+	}
+
+	async function handlePayment(shares: SharesInMarketDto, walleSecret: string, walletAddress: string) {
+		const profit = calculateProfit(shares);
+		const tax = calculateTax(profit);
+		const toSeller = (shares.numberOfShares * shares.price) - tax;
+
+		console.log("profit "+profit)
+		console.log("tax "+tax)
+		console.log("toSeller "+toSeller)
+		console.log(currentNetworkName);
+
+		moveMoney("0xe0B6C61C5215C0Fc34982c9E982b46A301049A7e", "10", walleSecret)
+
+		// moveMoney(taxERC20Address, tax.toString(), walleSecret)
+		// moveMoney(shares.soldByAddress, toSeller.toString(), walleSecret)
+	}
+
+	async function moveMoney(to: string, amount: string, walletSecret: string) {
 		try {
 		  const { destinationChain } = BRIDGE_CHAIN_CONFIG();
+
+		  console.log(walletSecret);
 	  
 		  const walletDestination = new ethers.Wallet(walletSecret!).connect(
 			GET_PROVIDER( destinationChain, { withNetwork: true }),
 		  );
-		
+			
+			console.log(walletDestination.address);
 		  const destinationToken = CBToken__factory.connect(
 			CONTRACT_ADDRESSES[destinationChain.id].CB_TOKEN_BRIDGE_ADDRESS,
 			walletDestination,
@@ -129,40 +165,50 @@ const Page = () => {
 		}
 	  }
 
-	async function buyShares(shares: SharesInMarketDto, walleSecret: string, walletAddress: string)  {
+	const buyShares = useCallback ((shares: SharesInMarketDto) =>  {
+
+		if(!secret) {
+			throw Error("No secret found or addres")
+		}
+		if(!address) {
+			throw Error("No  addres")
+		}
 		const buyRequest: BuySharesDto = {
 			transactionID: shares.id,
-			buyerID: walletAddress,
+			buyerID: address?.toString() || "",
 			numberOfStocksToBuy: shares.numberOfShares,
 		};
 
+		console.log("buy address "+address);
+
+		handlePayment(shares, secret || "", address || "");
 	
-		try {
-			const res = await fetch("/api/buy-shares", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(buyRequest
-				),
-			});
+		// try {
+		// 	const res = await fetch("/api/buy-shares", {
+		// 		method: "POST",
+		// 		headers: {
+		// 			"Content-Type": "application/json",
+		// 		},
+		// 		body: JSON.stringify(buyRequest
+		// 		),
+		// 	});
 	
-			if(res.status === 200) {
-				const json = await res.json();
-				console.log(json);
-				toast(`Du kjøpte ${shares.numberOfShares} aksjer av ${shares.companyName}`, { type: "success" });
-				fetchSharesInMarket();
-			}
+		// 	if(res.status === 200) {
+		// 		const json = await res.json();
+		// 		console.log(json);
+		// 		handlePayment(shares, walleSecret, walletAddress);
+		// 		toast(`Du kjøpte ${shares.numberOfShares} aksjer av ${shares.companyName}`, { type: "success" });
+		// 		fetchSharesInMarket();
+		// 	}
 			
-		} catch (error) {
-			console.log(error);
-			toast("Kunne ikke opprette salgsordre!", { type: "error" });
-		}
+		// } catch (error) {
+		// 	console.log(error);
+		// 	toast("Kunne ikke opprette salgsordre!", { type: "error" });
+		// }
 	
 		console.log("sell now");
-		// const totalPrice = shares.price * shares.numberOfShares;
-		// moveMoney(shares.soldByAddress, totalPrice.toString(), walleSecret)
-	  }
+		
+	  }, [secret, address])
 
 	const renderMarketTableRows = useCallback(
 		() =>
@@ -183,10 +229,11 @@ const Page = () => {
                 className="action-button"
                 variant="primary"
 					onClick={() => {
-						if(secret != undefined && address != undefined) {
-							buyShares(companyShares, secret, address)}
-						}
+
+							buyShares(companyShares);
+
 					}
+				}
 				  >
 					Kjøp aksjer
 				  </Button>

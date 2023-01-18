@@ -113,7 +113,8 @@ const fetchTransactions = async () => {
 		});
 		const json = await res2.json();
 		const toArray : TransactionDto[] = json.shares;
-		const reversed = toArray.reverse();
+		const filtered = toArray.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+		const reversed = filtered.reverse();
 		console.log(reversed);
 		setTransactions(reversed);
 		const sales = reversed.filter((transaction) => transaction.boughtByAddress != address?.toString().toLocaleLowerCase())

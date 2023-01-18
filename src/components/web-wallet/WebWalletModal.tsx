@@ -52,7 +52,7 @@ export const WebWalletModal: React.FC<Props> = ({ ...props }) => {
 	useEffect(() => {
 		const doAsync = async () => {
 			if (process.env.NODE_ENV === "development") {
-				setSecret(process.env.NEXT_PUBLIC_DEV_PRIVATE_KEY!);
+				//setSecret(process.env.NEXT_PUBLIC_DEV_PRIVATE_KEY!);
 			}
 			if (status === "success") {
 				await disconnect();

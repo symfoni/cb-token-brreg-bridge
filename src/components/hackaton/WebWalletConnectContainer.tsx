@@ -50,7 +50,7 @@ export const WebWalletConnectContainer: React.FC<Props> = ({ ...props }) => {
 		<>
 		{/* {isConnected ? <WalletInfo></WalletInfo> : <ConnectButton></ConnectButton>} */}
 			<div className="login-card" style={{marginRight: 22}} onClick={()=> setWalletModalVisible(true)}>
-			{address != undefined ? <div className="avatar"/> : <div className="avatar-tom"/>}
+			{address != undefined ? (address.toString() == "0x1BD2AfE3d185C4Aa0a667759A5652Ad41405A1B7" ? <div className="avatar"/> : <div className="avatarMan"/>) : <div className="avatar-tom"/>}
 			{address != undefined ? <span className="login-name">{wallets.find((w) => w.address.toLowerCase() === address.toLowerCase())?.name}</span> :
 			<span className="login-name">Logg inn</span>}
 			<ChevronDown
