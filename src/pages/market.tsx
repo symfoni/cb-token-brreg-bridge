@@ -70,23 +70,13 @@ const Page = () => {
 	const { write, writeAsync } = useContractWrite(config);
 	const [isWriting, setIsWriting] = useState(false);
 	const { updateCurrentNetwork } = useAppState();
-	const { chains, switchNetwork, data, status, variables } = useSwitchNetwork();
 	const [sharesInMarket, setSharesInMarket] = useState<
     SharesInMarketDto[]
   >([]);
   const [selectedShares, setSelectedShares] = useState<SharesInMarketDto>();
 
-  const switchToGoerliNetwork = useCallback(
-	async () => {
-		updateCurrentNetwork(421613);
-	},
-	[switchNetwork],
-);
 
   useEffect(() => {
-	if (currentNetwork !== Networks.ARBITRUM_GOERLI) {
-		switchToGoerliNetwork();
-	}
 
 	fetchSharesInMarket();
   }, []);
@@ -132,11 +122,10 @@ const Page = () => {
 		console.log("tax "+tax)
 		console.log("toSeller "+toSeller)
 		console.log(currentNetworkName);
+		console.log("toaddress "+ shares.soldByAddress);
 
-		moveMoney("0xe0B6C61C5215C0Fc34982c9E982b46A301049A7e", "10", walleSecret)
-
-		// moveMoney(taxERC20Address, tax.toString(), walleSecret)
-		// moveMoney(shares.soldByAddress, toSeller.toString(), walleSecret)
+		await moveMoney(taxERC20Address, tax.toString(), walleSecret)
+		await moveMoney(shares.soldByAddress, toSeller.toString(), walleSecret)
 	}
 
 	async function moveMoney(to: string, amount: string, walletSecret: string) {

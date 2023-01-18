@@ -35,7 +35,7 @@ export type ContractAddresses = {
 	CB_TOKEN_BRIDGE_ADDRESS: Address;
 };
 
-const DEFAULT_NETWORK = process.env.NODE_ENV === "development" ? Networks.LOCAL_HARDHAT : Networks.BERGEN;
+const DEFAULT_NETWORK = process.env.NODE_ENV === "development" ? Networks.ARBITRUM_GOERLI : Networks.BERGEN;
 
 const SOURCE_CHAIN = parseInt(process.env.NEXT_PUBLIC_SOURCE_CHAIN!);
 const DESTINATION_CHAIN = parseInt(process.env.NEXT_PUBLIC_DESTINATION_CHAIN!);
