@@ -125,7 +125,7 @@ const Page = () => {
 		console.log("toaddress "+ shares.soldByAddress);
 
 		await moveMoney(taxERC20Address, tax.toString(), walleSecret)
-		await moveMoney(shares.soldByAddress, toSeller.toString(), walleSecret)
+		await moveMoney(shares.soldByAddress, toSeller.toString() , walleSecret) //toSeller.toString()
 	}
 
 	async function moveMoney(to: string, amount: string, walletSecret: string) {
@@ -154,13 +154,13 @@ const Page = () => {
 		}
 	  }
 
-	const buyShares = useCallback ((shares: SharesInMarketDto) =>  {
+	const buyShares = useCallback (async (shares: SharesInMarketDto) =>  {
 
 		if(!secret) {
-			throw Error("No secret found or addres")
+			throw Error("No secret found")
 		}
 		if(!address) {
-			throw Error("No  addres")
+			throw Error("No  address")
 		}
 		const buyRequest: BuySharesDto = {
 			transactionID: shares.id,
@@ -170,30 +170,32 @@ const Page = () => {
 
 		console.log("buy address "+address);
 
-		handlePayment(shares, secret || "", address || "");
+
+		// handlePayment(shares, secret || "", address || "");
+		
 	
-		// try {
-		// 	const res = await fetch("/api/buy-shares", {
-		// 		method: "POST",
-		// 		headers: {
-		// 			"Content-Type": "application/json",
-		// 		},
-		// 		body: JSON.stringify(buyRequest
-		// 		),
-		// 	});
+		try {
+			const res = await fetch("/api/buy-shares", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(buyRequest
+				),
+			});
 	
-		// 	if(res.status === 200) {
-		// 		const json = await res.json();
-		// 		console.log(json);
-		// 		handlePayment(shares, walleSecret, walletAddress);
-		// 		toast(`Du kjøpte ${shares.numberOfShares} aksjer av ${shares.companyName}`, { type: "success" });
-		// 		fetchSharesInMarket();
-		// 	}
+			if(res.status === 200) {
+				const json = await res.json();
+				console.log(json);
+				handlePayment(shares, secret || "", address || "");
+				toast(`Du kjøpte ${shares.numberOfShares} aksjer av ${shares.companyName}`, { type: "success" });
+				fetchSharesInMarket();
+			}
 			
-		// } catch (error) {
-		// 	console.log(error);
-		// 	toast("Kunne ikke opprette salgsordre!", { type: "error" });
-		// }
+		} catch (error) {
+			console.log(error);
+			toast("Kunne ikke opprette salgsordre!", { type: "error" });
+		}
 	
 		console.log("sell now");
 		

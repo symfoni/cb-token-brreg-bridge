@@ -63,19 +63,9 @@ const Page = () => {
   const [totalGain, setTotalGain] = useState<string>();
   const [totalTax, setTotalTax] = useState<string>();
 
-  const switchToGoerliNetwork = useCallback(
-	async () => {
-		updateCurrentNetwork(chains[1].id);
-	},
-	[switchNetwork],
-);
-
 	// TODO - Fetch my captables
 
 	useEffect(() => {
-		if (currentNetwork !== Networks.ARBITRUM_GOERLI) {
-			switchToGoerliNetwork();
-		}
 		if(address !== undefined) {
 			fetchPortfolio();
 			fetchTransactions();
